@@ -2,20 +2,17 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Pill, LayoutDashboard, Map, ScanLine, LogOut } from 'lucide-react';
-import { Logo } from './Logo';
+import { Logo } from '../Logo';
 
 export const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Navigate back to Landing Page
     navigate('/');
   };
 
   const getActiveId = (path: string) => {
-    // If we are at root, technically it's home, but Navbar is usually hidden there.
-    // Inside the app, 'HOME' is /user-home
     if (path === '/user-home') return 'HOME';
     if (path.startsWith('/scan')) return 'SCAN';
     if (path.startsWith('/dashboard')) return 'DASHBOARD';
@@ -60,7 +57,6 @@ export const Navbar: React.FC = () => {
               </button>
             ))}
 
-            {/* Logout Button */}
             <button
               onClick={handleLogout}
               className="flex flex-col md:flex-row items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2.5 rounded-xl transition-all duration-200 text-red-500 hover:bg-red-50 hover:text-red-600"

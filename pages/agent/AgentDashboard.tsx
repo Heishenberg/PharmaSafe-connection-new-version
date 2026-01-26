@@ -7,6 +7,7 @@ import {
   Clock, ShieldCheck, AlertCircle, Package, Award, 
   Truck
 } from 'lucide-react';
+import { Logo } from '../../components/Logo';
 
 interface AgentProfile {
   name: string;
@@ -40,11 +41,14 @@ export const AgentDashboard = () => {
       {/* 1. LEFT SIDEBAR (Fixed) */}
       <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 z-20">
         <div className="p-6">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-wide">
-             <div className="bg-orange-500/10 p-2 rounded-lg border border-orange-500/20">
-                <ShieldCheck className="w-6 h-6 text-orange-500" />
+          <div className="flex items-center gap-3">
+             <div className="bg-white/10 p-2 rounded-lg">
+                <Logo className="h-10 w-auto" />
              </div>
-             <span className="text-white">PharmaSafe <span className="text-orange-500">Agent</span></span>
+             <div className="leading-tight">
+                <span className="text-white font-bold text-lg block">Planet</span>
+                <span className="text-white font-bold text-lg block">Prescription <span className="text-orange-500">Agent</span></span>
+             </div>
           </div>
         </div>
 

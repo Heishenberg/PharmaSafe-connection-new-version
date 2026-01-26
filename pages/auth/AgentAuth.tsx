@@ -2,7 +2,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Truck, CreditCard, ChevronRight, ChevronLeft, Upload, CheckCircle, ShieldCheck } from 'lucide-react';
-import { Logo } from '../components/Logo';
+import { Logo } from '../../components/Logo';
+import { saveAgentProfile } from '../../utils/storage';
 
 export const AgentAuth: React.FC = () => {
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ export const AgentAuth: React.FC = () => {
       status: 'Verified'
     };
     
-    localStorage.setItem('agentProfile', JSON.stringify(agentProfile));
+    saveAgentProfile(agentProfile);
     
     // Navigate to Dashboard
     navigate('/agent');

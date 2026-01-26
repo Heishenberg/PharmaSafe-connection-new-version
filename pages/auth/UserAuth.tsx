@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pill, ArrowRight, UserPlus, UserCheck, MapPin, User, Phone, Calendar, ArrowLeft } from 'lucide-react';
-import { Logo } from '../components/Logo';
+import { Logo } from '../../components/Logo';
+import { saveUserProfile } from '../../utils/storage';
 
 export const UserAuth: React.FC = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export const UserAuth: React.FC = () => {
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Save Profile to LocalStorage
+    // Save Profile using utility
     const userProfile = {
       name: formData.name,
       phone: formData.phone,
@@ -43,7 +44,7 @@ export const UserAuth: React.FC = () => {
       joinDate: new Date().toISOString()
     };
 
-    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+    saveUserProfile(userProfile);
     
     // Navigate to home
     navigate('/user-home');

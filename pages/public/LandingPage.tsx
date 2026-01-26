@@ -5,12 +5,11 @@ import {
   Star, ChevronDown, ChevronUp, Mail, Linkedin, Instagram, 
   Youtube
 } from 'lucide-react';
-import { Logo } from '../components/Logo';
+import { Logo } from '../../components/Logo';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
 
-  // Scroll to top on mount
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -49,17 +48,16 @@ export const LandingPage: React.FC = () => {
                   ♻️ The Future of Pharma Disposal
                 </span>
                 <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 leading-tight tracking-tight">
-                  When Medicine Stops Healing, We Make Sure It Doesn’t Harm.
-                  <br />
+                  When Medicine Stops Healing, We Make Sure It Doesn't Harm.
+                  <br/>
                   <span className="text-teal-700">Heal the Planet.</span>
                 </h1>
                 <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto md:mx-0 leading-relaxed">
-                  Join the world's largest network for safe pharmaceutical waste management. Identify risks instantly with AI and schedule doorstep pickups.
+                  AI-powered safe disposal of unused medicines—protecting families, communities, and the planet.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
-                {/* User Button */}
                 <button 
                   onClick={() => navigate('/user-login')}
                   className="w-full sm:w-auto px-8 py-4 bg-teal-700 text-white rounded-xl font-bold shadow-xl hover:bg-teal-800 transition-all hover:scale-105 flex items-center justify-center gap-3"
@@ -71,7 +69,6 @@ export const LandingPage: React.FC = () => {
                   </div>
                 </button>
                 
-                {/* Agent Button */}
                 <button 
                   onClick={() => navigate('/agent-login')}
                   className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-orange-500 border border-orange-500/30 rounded-xl font-bold shadow-xl hover:bg-slate-800 transition-all hover:scale-105 flex items-center justify-center gap-3"
@@ -100,7 +97,6 @@ export const LandingPage: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Gauge Visual */}
                 <div className="relative h-48 mb-6 flex items-center justify-center">
                    <svg viewBox="0 0 100 50" className="w-full h-full drop-shadow-lg">
                      <path d="M10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="8" strokeLinecap="round" />
@@ -112,7 +108,6 @@ export const LandingPage: React.FC = () => {
                    </div>
                 </div>
 
-                {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/60 p-3 rounded-2xl border border-white/50">
                     <div className="flex items-center gap-2 mb-1">

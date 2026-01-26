@@ -1,16 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Navbar } from './components/Navbar';
-import { LandingPage } from './pages/LandingPage';
-import { UserAuth } from './pages/UserAuth';
-import { AgentAuth } from './pages/AgentAuth';
-import { ScanPage } from './pages/ScanPage';
-import DashboardPage from './pages/DashboardPage';
-import { HomePage } from './pages/HomePage';
+import { Navbar } from './components/common/Navbar';
+import { LandingPage } from './pages/public/LandingPage';
+import { UserAuth } from './pages/auth/UserAuth';
+import { AgentAuth } from './pages/auth/AgentAuth';
+import { ScanPage } from './pages/user/ScanPage';
+import DashboardPage from './pages/user/DashboardPage';
+import { HomePage } from './pages/user/HomePage';
 import { AgentDashboard } from './pages/agent/AgentDashboard';
 import { MedicineAnalysis } from './types';
 import { Calendar } from 'lucide-react';
+import { saveUserPickup } from './utils/storage';
 
 const App: React.FC = () => {
   const navigate = useNavigate();
@@ -52,18 +53,7 @@ const App: React.FC = () => {
     };
 
     try {
-      // 1. Get existing pickups
-      const existingData = localStorage.getItem('userPickups');
-      const pickups = existingData ? JSON.parse(existingData) : [];
-      
-      // 2. Add new pickup
-      const updatedPickups = [newRequest, ...pickups];
-      localStorage.setItem('userPickups', JSON.stringify(updatedPickups));
-
-      // 3. Increment usage count
-      const currentUsage = parseInt(localStorage.getItem('lifetimeUsage') || '0', 10);
-      localStorage.setItem('lifetimeUsage', (currentUsage + 1).toString());
-      
+      saveUserPickup(newRequest);
     } catch (err) {
       console.error("Failed to save pickup", err);
     }
