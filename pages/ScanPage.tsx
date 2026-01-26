@@ -1,29 +1,31 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, RefreshCw, AlertCircle, X, Zap, ArrowLeft, CheckCircle, FileText, MapPin, Calendar, Clock, Navigation } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { AnalysisCard } from '../components/AnalysisCard';
-import { BackButton } from '../components/BackButton';
 import { analyzeMedicineImage } from '../services/geminiService';
-import { MedicineAnalysis } from '../types';
+import { MedicineAnalysis, RiskLevel } from '../types';
 
 interface ScanPageProps {
-  onSchedulePickup: (analysis: MedicineAnalysis) => void;
+  onSchedulePickup?: (analysis: MedicineAnalysis) => void;
 }
 
-export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
-  // Step State: 'identify' -> 'pickup' -> 'success'
-  const [step, setStep] = useState<'identify' | 'pickup' | 'success'>('identify');
+type Step = 'identify' | 'pickup' | 'success';
 
-  // Analysis / Media States
+export const ScanPage: React.FC<ScanPageProps> = () => {
+  const navigate = useNavigate();
+  
+  // Flow State
+  const [step, setStep] = useState<Step>('identify');
+  const [confirmedMedicine, setConfirmedMedicine] = useState<MedicineAnalysis | null>(null);
+
+  // Identify Step States
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<MedicineAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  // Camera States
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  
-  // Form States
   const [isManualEntry, setIsManualEntry] = useState(false);
   const [manualForm, setManualForm] = useState({
     name: '',
@@ -32,14 +34,15 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
     expiryDate: '',
     price: ''
   });
-  
+
+  // Pickup Step States
   const [pickupForm, setPickupForm] = useState({
     address: '',
     landmark: '',
     date: '',
-    timeSlot: 'Morning 9-12'
+    timeSlot: 'Morning 09:00 - 12:00'
   });
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,7 +54,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
     };
   }, []);
 
-  // Attach stream to video element when camera opens
+  // Attach stream to video element
   useEffect(() => {
     if (isCameraOpen && videoRef.current && stream) {
       videoRef.current.srcObject = stream;
@@ -59,6 +62,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
     }
   }, [isCameraOpen, stream]);
 
+  // --- Handlers: Camera & Image ---
   const startCamera = async () => {
     try {
       setError(null);
@@ -69,7 +73,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
       setIsCameraOpen(true);
       setImage(null);
       setAnalysis(null);
-      setIsManualEntry(false); 
+      setIsManualEntry(false);
     } catch (err) {
       console.error("Camera Error:", err);
       setError("Unable to access camera. Please check permissions.");
@@ -103,6 +107,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
   const handleRetake = () => {
     setImage(null);
     setAnalysis(null);
+    setConfirmedMedicine(null);
     startCamera();
   };
 
@@ -141,81 +146,82 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleReset = () => {
     setImage(null);
     setAnalysis(null);
+    setConfirmedMedicine(null);
     setError(null);
-    setStep('identify');
     setIsManualEntry(false);
-    setPickupForm({ address: '', landmark: '', date: '', timeSlot: 'Morning 9-12' });
-    setManualForm({ name: '', purpose: '', mfgDate: '', expiryDate: '', price: '' });
+    setStep('identify');
     if (fileInputRef.current) fileInputRef.current.value = '';
     stopCamera();
   };
 
-  // --- Handlers ---
-  const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setManualForm(prev => ({ ...prev, [name]: value }));
+  // --- Handlers: Transitions ---
+
+  // Transition from Analysis -> Pickup
+  const proceedFromAnalysis = () => {
+    if (analysis) {
+      setConfirmedMedicine(analysis);
+      setStep('pickup');
+    }
   };
 
+  // Transition from Manual Entry -> Pickup
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Transition to Pickup Step
+    const manualAnalysis: MedicineAnalysis = {
+      name: manualForm.name,
+      composition: manualForm.purpose,
+      expiryDate: manualForm.expiryDate,
+      riskLevel: RiskLevel.UNKNOWN,
+      riskReason: 'Manually entered by user',
+      disposalRecommendation: 'Please consult local pharmacist'
+    };
+    setConfirmedMedicine(manualAnalysis);
     setStep('pickup');
   };
 
-  const handlePickupChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setPickupForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handlePickupSubmit = (e: React.FormEvent) => {
+  // Submit Pickup Form -> Success
+  const confirmPickup = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const medicineName = analysis ? analysis.name : manualForm.name;
-    const riskLevel = analysis ? analysis.riskLevel : 'Unknown';
+    if (!confirmedMedicine) return;
 
-    // Create new pickup object
-    const newPickup = {
+    // 1. Construct Record
+    const newRequest = {
       id: Date.now().toString(),
-      medicineName: medicineName,
+      medicineName: confirmedMedicine.name,
       pickupDate: pickupForm.date,
       timeSlot: pickupForm.timeSlot,
       status: 'Scheduled',
-      riskLevel: riskLevel,
+      riskLevel: confirmedMedicine.riskLevel,
       timestamp: new Date().toISOString()
     };
 
-    // Save to localStorage
+    console.log("Submitting Pickup:", {
+        medicine: confirmedMedicine,
+        details: pickupForm
+    });
+
+    // 2. Save to LocalStorage for Dashboard persistence
     try {
       const existingData = localStorage.getItem('userPickups');
       const pickups = existingData ? JSON.parse(existingData) : [];
-      pickups.unshift(newPickup); // Add new item to the top
-      localStorage.setItem('userPickups', JSON.stringify(pickups));
-      
-      // Update Lifetime Usage Count (Safe Parsing)
-      const rawUsage = localStorage.getItem('lifetimeUsage');
-      const currentCount = rawUsage ? parseInt(rawUsage, 10) : 0;
-      const safeCount = isNaN(currentCount) ? 0 : currentCount;
-      const newCount = safeCount + 1;
-      
-      localStorage.setItem('lifetimeUsage', newCount.toString());
+      const updatedPickups = [newRequest, ...pickups];
+      localStorage.setItem('userPickups', JSON.stringify(updatedPickups));
 
-      console.log("Saved pickup:", newPickup);
+      const currentUsage = parseInt(localStorage.getItem('lifetimeUsage') || '0', 10);
+      localStorage.setItem('lifetimeUsage', (currentUsage + 1).toString());
     } catch (err) {
-      console.error("Failed to save pickup to localStorage", err);
+      console.error("Failed to save pickup", err);
     }
-    
+
+    // 3. Move to Success
     setStep('success');
   };
 
-  // --- Render: Camera View (Only in Identify step) ---
-  if (isCameraOpen && step === 'identify') {
+  // --- Render: Camera View (Overlay) ---
+  if (isCameraOpen) {
     return (
       <div className="fixed inset-0 bg-black z-[60] flex flex-col">
         <div className="flex justify-between items-center p-4 absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/50 to-transparent">
@@ -224,18 +230,10 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
             <X className="w-6 h-6" />
           </button>
         </div>
-        
         <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black">
-          <video 
-            ref={videoRef} 
-            autoPlay 
-            playsInline 
-            muted 
-            className="w-full h-full object-cover"
-          />
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
           <canvas ref={canvasRef} className="hidden" />
         </div>
-
         <div className="p-8 bg-black/20 backdrop-blur-sm absolute bottom-0 left-0 right-0 flex justify-center items-center pb-safe">
           <button 
             onClick={captureImage}
@@ -253,11 +251,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
   return (
     <div className="max-w-lg mx-auto p-4 space-y-6 pb-24 md:pb-8">
       
-      <BackButton />
-
-      {/* 
-        STEP 1: IDENTIFY (Scan/Manual/Analysis) 
-      */}
+      {/* --- Step 1: Identify --- */}
       {step === 'identify' && (
         <>
           <header className="text-center mb-8">
@@ -266,8 +260,8 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
             </h1>
             <p className="text-slate-500">
               {isManualEntry 
-                ? 'Enter medicine details to check buy-back eligibility.' 
-                : 'Take a photo or upload an image to analyze risk.'}
+                ? 'Enter details to identify medicine type.' 
+                : 'Take a photo or upload to analyze composition.'}
             </p>
           </header>
 
@@ -277,107 +271,78 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
               <button onClick={() => setIsManualEntry(false)} className="flex items-center gap-1 text-slate-500 hover:text-slate-800 text-sm font-medium mb-4 transition-colors">
                 <ArrowLeft className="w-4 h-4" /> Back to Scan
               </button>
-              
               <form onSubmit={handleManualSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Medicine Name</label>
+                  <input required value={manualForm.name} onChange={e => setManualForm({...manualForm, name: e.target.value})} placeholder="e.g. Dolo 650" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Purpose</label>
+                  <input required value={manualForm.purpose} onChange={e => setManualForm({...manualForm, purpose: e.target.value})} placeholder="e.g. Fever, Pain" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Medicine Name</label>
-                    <input required name="name" value={manualForm.name} onChange={handleManualChange} placeholder="e.g. Dolo 650" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Purpose/Reason for Use</label>
-                    <input required name="purpose" value={manualForm.purpose} onChange={handleManualChange} placeholder="e.g. Fever" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none transition-all" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Manufacture Date</label>
-                      <input required type="date" name="mfgDate" value={manualForm.mfgDate} onChange={handleManualChange} className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none transition-all text-slate-600" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Expiry Date</label>
-                      <input required type="date" name="expiryDate" value={manualForm.expiryDate} onChange={handleManualChange} className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none transition-all text-slate-600" />
-                    </div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Expiry Date</label>
+                    <input required type="date" value={manualForm.expiryDate} onChange={e => setManualForm({...manualForm, expiryDate: e.target.value})} className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none text-slate-600" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Purchase Price (₹)</label>
-                    <input required type="number" name="price" value={manualForm.price} onChange={handleManualChange} placeholder="0.00" min="0" step="0.01" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none transition-all" />
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Price (₹)</label>
+                    <input type="number" value={manualForm.price} onChange={e => setManualForm({...manualForm, price: e.target.value})} placeholder="0.00" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none" />
                   </div>
-
-                  <button type="submit" className="w-full mt-2 bg-teal-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/20 active:scale-[0.98]">
-                    Continue to Pickup
-                  </button>
+                </div>
+                <button type="submit" className="w-full mt-2 bg-teal-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-teal-700 transition-all shadow-lg">
+                  Next: Pickup Details
+                </button>
               </form>
             </div>
           )}
 
-          {/* Scan Options (Default) */}
+          {/* Initial Scan Buttons */}
           {!image && !isManualEntry && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 gap-4">
-                <button 
-                  onClick={startCamera}
-                  className="bg-teal-600 text-white p-8 rounded-2xl shadow-lg hover:bg-teal-700 transition-all flex flex-col items-center gap-3 group"
-                >
+                <button onClick={startCamera} className="bg-teal-600 text-white p-8 rounded-2xl shadow-lg hover:bg-teal-700 transition-all flex flex-col items-center gap-3 group">
                   <div className="bg-white/20 p-4 rounded-full group-hover:scale-110 transition-transform">
                     <Camera className="w-8 h-8" />
                   </div>
                   <span className="text-lg font-bold">Open Camera</span>
                 </button>
-
                 <div 
-                  onClick={triggerFileInput}
+                  onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-slate-300 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-teal-500 hover:bg-teal-50 transition-all text-slate-500 hover:text-teal-600"
                 >
                   <Upload className="w-6 h-6 mb-2" />
                   <span className="font-medium">Upload from Gallery</span>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    className="hidden" 
-                    ref={fileInputRef} 
-                    onChange={handleFileChange}
-                  />
+                  <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
                 </div>
               </div>
-
               <div className="text-center">
-                <button 
-                  onClick={() => setIsManualEntry(true)}
-                  className="text-teal-600 font-medium text-sm hover:text-teal-700 hover:underline flex items-center justify-center gap-2 mx-auto py-2 px-4 rounded-lg hover:bg-teal-50 transition-colors"
-                >
+                <button onClick={() => setIsManualEntry(true)} className="text-teal-600 font-medium text-sm hover:text-teal-700 hover:underline flex items-center justify-center gap-2 mx-auto py-2 px-4 rounded-lg hover:bg-teal-50 transition-colors">
                   <FileText className="w-4 h-4" />
-                  Know your medicine? Enter details manually
+                  Enter details manually
                 </button>
               </div>
             </div>
           )}
 
-          {/* Image Preview */}
+          {/* Image Preview & Analyze Actions */}
           {image && !analysis && !isAnalyzing && (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
               <div className="relative rounded-xl overflow-hidden shadow-lg aspect-[3/4] md:aspect-video bg-black">
                 <img src={image} alt="Captured medicine" className="w-full h-full object-contain" />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
-                <button 
-                  onClick={handleRetake}
-                  className="py-3 px-4 rounded-xl font-semibold border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className="w-5 h-5" />
-                  Retake
+                <button onClick={handleRetake} className="py-3 px-4 rounded-xl font-semibold border-2 border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2">
+                  <RefreshCw className="w-5 h-5" /> Retake
                 </button>
-                <button 
-                  onClick={handleAnalyze}
-                  className="py-3 px-4 rounded-xl font-semibold bg-teal-600 text-white hover:bg-teal-700 shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-2"
-                >
-                  <Zap className="w-5 h-5" />
-                  Analyze with AI
+                <button onClick={handleAnalyze} className="py-3 px-4 rounded-xl font-semibold bg-teal-600 text-white hover:bg-teal-700 shadow-lg flex items-center justify-center gap-2">
+                  <Zap className="w-5 h-5" /> Analyze with AI
                 </button>
               </div>
             </div>
           )}
 
-          {/* Analyzing State */}
+          {/* Loading State */}
           {isAnalyzing && (
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center animate-pulse">
               <div className="w-16 h-16 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin mb-6"></div>
@@ -398,15 +363,12 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
             </div>
           )}
 
-          {/* Result State (Identify Step) */}
+          {/* Analysis Result */}
           {analysis && (
             <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
-              <AnalysisCard 
-                data={analysis} 
-                onSchedule={() => setStep('pickup')} 
-              />
+              <AnalysisCard data={analysis} onSchedule={proceedFromAnalysis} />
               <div className="mt-6 text-center">
-                <button onClick={handleReset} className="py-2 px-6 rounded-full bg-slate-100 text-slate-600 font-medium hover:bg-slate-200 hover:text-slate-800 transition-colors">
+                <button onClick={handleReset} className="py-2 px-6 rounded-full bg-slate-100 text-slate-600 font-medium hover:bg-slate-200 transition-colors">
                   Scan Another Item
                 </button>
               </div>
@@ -415,122 +377,131 @@ export const ScanPage: React.FC<ScanPageProps> = ({ onSchedulePickup }) => {
         </>
       )}
 
-      {/* 
-        STEP 2: PICKUP DETAILS 
-      */}
-      {step === 'pickup' && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 animate-in slide-in-from-right-8 duration-300">
-          <div className="flex items-center gap-3 mb-6">
-            <button 
-              onClick={() => setStep('identify')}
-              className="p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-slate-500" />
-            </button>
-            <h2 className="text-xl font-bold text-slate-900">Schedule Pickup</h2>
+      {/* --- Step 2: Pickup Details --- */}
+      {step === 'pickup' && confirmedMedicine && (
+        <div className="animate-in slide-in-from-right-8 duration-300">
+          <div className="flex items-center gap-2 mb-6">
+             <button onClick={() => setStep('identify')} className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors">
+               <ArrowLeft className="w-6 h-6" />
+             </button>
+             <h1 className="text-2xl font-bold text-slate-900">Pickup Details</h1>
           </div>
 
-          <form onSubmit={handlePickupSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-teal-600" /> 
-                Address Line
-              </label>
-              <textarea 
-                required 
-                name="address" 
-                value={pickupForm.address} 
-                onChange={handlePickupChange} 
-                rows={3} 
-                placeholder="Flat No, Building, Street Name..." 
-                className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none transition-all resize-none" 
-              />
-            </div>
+          <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 mb-6 flex items-start gap-3">
+             <div className="bg-teal-100 p-2 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-teal-700" />
+             </div>
+             <div>
+               <p className="text-sm font-bold text-teal-900">Disposing: {confirmedMedicine.name}</p>
+               <p className="text-xs text-teal-700 mt-0.5">{confirmedMedicine.riskLevel} - {confirmedMedicine.disposalRecommendation}</p>
+             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-2">
-                <Navigation className="w-4 h-4 text-teal-600" />
-                Landmark
-              </label>
-              <input 
-                type="text" 
-                name="landmark" 
-                value={pickupForm.landmark} 
-                onChange={handlePickupChange} 
-                placeholder="Near City Mall" 
-                className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none transition-all" 
-              />
-            </div>
+          <form onSubmit={confirmPickup} className="space-y-6">
+             <div className="space-y-4">
+                <div>
+                   <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                     <MapPin className="w-4 h-4 text-slate-400" /> Address Line
+                   </label>
+                   <textarea 
+                     required 
+                     rows={3}
+                     value={pickupForm.address}
+                     onChange={e => setPickupForm({...pickupForm, address: e.target.value})}
+                     className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none resize-none bg-slate-50"
+                     placeholder="Flat No, Street Name, Area..."
+                   ></textarea>
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-teal-600" />
-                  Date
-                </label>
-                <input 
-                  required 
-                  type="date" 
-                  name="date" 
-                  min={new Date().toISOString().split('T')[0]}
-                  value={pickupForm.date} 
-                  onChange={handlePickupChange} 
-                  className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none transition-all text-slate-600" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-teal-600" />
-                  Time Slot
-                </label>
-                <select 
-                  name="timeSlot" 
-                  value={pickupForm.timeSlot} 
-                  onChange={handlePickupChange} 
-                  className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none transition-all text-slate-600"
-                >
-                  <option value="Morning 9-12">Morning 9-12</option>
-                  <option value="Afternoon 12-4">Afternoon 12-4</option>
-                  <option value="Evening 4-8">Evening 4-8</option>
-                </select>
-              </div>
-            </div>
+                <div>
+                   <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                     <Navigation className="w-4 h-4 text-slate-400" /> Landmark
+                   </label>
+                   <input 
+                     type="text"
+                     value={pickupForm.landmark}
+                     onChange={e => setPickupForm({...pickupForm, landmark: e.target.value})}
+                     className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50"
+                     placeholder="Near City Mall..."
+                   />
+                </div>
 
-            <div className="pt-4">
-              <button 
-                type="submit" 
-                className="w-full bg-teal-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/20 active:scale-[0.98] flex items-center justify-center gap-2"
-              >
-                Confirm Pickup
-              </button>
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div>
+                      <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                        <Calendar className="w-4 h-4 text-slate-400" /> Pickup Date
+                      </label>
+                      <input 
+                        required 
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        value={pickupForm.date}
+                        onChange={e => setPickupForm({...pickupForm, date: e.target.value})}
+                        className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50 text-slate-700"
+                      />
+                   </div>
+                   <div>
+                      <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                        <Clock className="w-4 h-4 text-slate-400" /> Time Slot
+                      </label>
+                      <div className="relative">
+                        <select 
+                          value={pickupForm.timeSlot}
+                          onChange={e => setPickupForm({...pickupForm, timeSlot: e.target.value})}
+                          className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50 appearance-none text-slate-700"
+                        >
+                          <option>Morning 09:00 - 12:00</option>
+                          <option>Afternoon 12:00 - 16:00</option>
+                          <option>Evening 16:00 - 20:00</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+
+             <div className="pt-4 border-t border-slate-100">
+               <button 
+                 type="submit" 
+                 className="w-full py-4 bg-teal-600 text-white font-bold rounded-xl shadow-lg hover:bg-teal-700 transition-all flex items-center justify-center gap-2"
+               >
+                 Confirm Pickup
+               </button>
+             </div>
           </form>
         </div>
       )}
 
-      {/* 
-        STEP 3: SUCCESS 
-      */}
+      {/* --- Step 3: Success --- */}
       {step === 'success' && (
-        <div className="bg-green-50 p-8 rounded-2xl border border-green-100 text-center animate-in zoom-in-95 duration-500 flex flex-col items-center justify-center min-h-[400px]">
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 shadow-inner animate-in bounce-in duration-700">
-            <CheckCircle className="w-12 h-12 text-green-600" />
-          </div>
-          
-          <h3 className="text-2xl font-bold text-green-900 mb-2">Pickup Scheduled!</h3>
-          <p className="text-green-800 font-medium mb-8 max-w-xs mx-auto">
-            Your Agent will arrive on <span className="font-bold">{pickupForm.date}</span> during the <span className="font-bold">{pickupForm.timeSlot}</span> slot.
-          </p>
-          
-          <button 
-            onClick={handleReset}
-            className="w-full max-w-xs py-3 bg-white border border-green-200 text-green-700 font-bold rounded-xl shadow-sm hover:bg-green-100 transition-colors"
-          >
-            Scan Another Item
-          </button>
+        <div className="flex flex-col items-center justify-center py-12 px-4 animate-in zoom-in-95 duration-500">
+           <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 shadow-sm">
+              <CheckCircle className="w-12 h-12 text-green-600" />
+           </div>
+           
+           <h2 className="text-3xl font-bold text-slate-900 mb-2 text-center">Pickup Scheduled!</h2>
+           <p className="text-slate-500 text-center max-w-xs mb-8">
+             Your collection agent will arrive on <span className="font-semibold text-slate-800">{pickupForm.date}</span> during the <span className="font-semibold text-slate-800">{pickupForm.timeSlot}</span> slot.
+           </p>
+
+           <div className="w-full space-y-3">
+             <button 
+               onClick={() => navigate('/dashboard')}
+               className="w-full py-4 bg-teal-600 text-white font-bold rounded-xl shadow-lg hover:bg-teal-700 transition-all"
+             >
+               View on Dashboard
+             </button>
+             <button 
+               onClick={handleReset}
+               className="w-full py-4 bg-white text-teal-700 font-bold rounded-xl border border-teal-100 hover:bg-teal-50 transition-all"
+             >
+               Scan Another Item
+             </button>
+           </div>
         </div>
       )}
-
     </div>
   );
 };

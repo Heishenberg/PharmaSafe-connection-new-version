@@ -1,33 +1,31 @@
+
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
-import { HomePage } from './pages/HomePage';
+import { LandingPage } from './pages/LandingPage';
+import { UserAuth } from './pages/UserAuth';
+import { AgentAuth } from './pages/AgentAuth';
 import { ScanPage } from './pages/ScanPage';
-import DashboardPage from './pages/DashboardPage'; // Changed to default import
-import { AgentDashboard } from './pages/AgentDashboard';
-import { MedicineAnalysis, PickupRequest } from './types';
+import DashboardPage from './pages/DashboardPage';
+import { HomePage } from './pages/HomePage';
+import { AgentDashboard } from './pages/agent/AgentDashboard';
+import { MedicineAnalysis } from './types';
 import { Calendar } from 'lucide-react';
 
 const App: React.FC = () => {
   const navigate = useNavigate();
-  const [pickupRequests, setPickupRequests] = useState<PickupRequest[]>([
-    {
-      id: '1',
-      medicine: {
-        name: 'Amoxicillin 500mg',
-        composition: 'Amoxicillin Trihydrate',
-        expiryDate: '10/2023',
-        riskLevel: 'High Risk' as any,
-        riskReason: 'Antibiotic resistance risk',
-        disposalRecommendation: 'Chemical neutralization required'
-      },
-      address: '123 Main St, Springfield',
-      date: '2024-05-15',
-      status: 'Scheduled'
-    }
-  ]);
+  const location = useLocation();
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [pendingAnalysis, setPendingAnalysis] = useState<MedicineAnalysis | null>(null);
+  // Form state for date
+  const [selectedDate, setSelectedDate] = useState('');
+
+  // Routes where the User Navbar should be hidden
+  const hideNavbarRoutes = ['/', '/user-login', '/agent-login'];
+  // Also hide if in agent portal
+  const isAgentPortal = location.pathname.startsWith('/agent') && location.pathname !== '/agent-login';
+  
+  const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname) && !isAgentPortal;
 
   useEffect(() => {
     console.log('App running');
@@ -42,39 +40,60 @@ const App: React.FC = () => {
     e.preventDefault();
     if (!pendingAnalysis) return;
 
-    const newRequest: PickupRequest = {
+    // Create a record compatible with DashboardPage's StoredPickup interface
+    const newRequest = {
       id: Date.now().toString(),
-      medicine: pendingAnalysis,
-      address: '123 Tech Park, Innovation Way', // Mock address for demo
-      date: new Date().toISOString().split('T')[0],
-      status: 'Scheduled'
+      medicineName: pendingAnalysis.name,
+      pickupDate: selectedDate || new Date().toISOString().split('T')[0],
+      timeSlot: '10:00 AM - 12:00 PM',
+      status: 'Scheduled',
+      riskLevel: pendingAnalysis.riskLevel,
+      timestamp: new Date().toISOString()
     };
 
-    setPickupRequests([newRequest, ...pickupRequests]);
+    try {
+      // 1. Get existing pickups
+      const existingData = localStorage.getItem('userPickups');
+      const pickups = existingData ? JSON.parse(existingData) : [];
+      
+      // 2. Add new pickup
+      const updatedPickups = [newRequest, ...pickups];
+      localStorage.setItem('userPickups', JSON.stringify(updatedPickups));
+
+      // 3. Increment usage count
+      const currentUsage = parseInt(localStorage.getItem('lifetimeUsage') || '0', 10);
+      localStorage.setItem('lifetimeUsage', (currentUsage + 1).toString());
+      
+    } catch (err) {
+      console.error("Failed to save pickup", err);
+    }
+
     setShowScheduleModal(false);
     setPendingAnalysis(null);
+    setSelectedDate('');
     navigate('/dashboard');
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      
-      {/* 
-         Main Layout Container
-         - min-h-screen & bg-slate-50: Ensures full height and background color.
-         - md:pt-20: Adds top padding ONLY on desktop to clear the fixed-top Navbar (h-16 + spacing).
-           On mobile, the Navbar is fixed at the bottom, so no top padding is needed.
-      */}
-      <main className="min-h-screen bg-slate-50 md:pt-20">
+    <div className={`min-h-screen font-sans ${isAgentPortal ? 'bg-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+      <main className={`min-h-screen ${shouldShowNavbar ? 'md:pt-20' : ''}`}>
         <Routes>
-          <Route path="/" element={<HomePage onStart={() => navigate('/scan')} />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/user-login" element={<UserAuth />} />
+          <Route path="/agent-login" element={<AgentAuth />} />
+          
+          {/* User App Routes */}
+          <Route path="/user-home" element={<HomePage onStart={() => navigate('/scan')} />} />
           <Route path="/scan" element={<ScanPage onSchedulePickup={handleSchedulePickup} />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          
+          {/* Agent App Routes */}
           <Route path="/agent" element={<AgentDashboard />} />
         </Routes>
       </main>
 
-      <Navbar />
+      {/* Conditionally render Navbar */}
+      {shouldShowNavbar && <Navbar />}
 
       {/* Schedule Modal Overlay */}
       {showScheduleModal && pendingAnalysis && (
@@ -106,6 +125,8 @@ const App: React.FC = () => {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Preferred Date</label>
                 <input 
                   type="date" 
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
                   className="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none"
                   required
                 />

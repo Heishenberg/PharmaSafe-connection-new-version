@@ -6,10 +6,11 @@ export const BackButton: React.FC = () => {
   const navigate = useNavigate();
   return (
     <button 
-      onClick={() => navigate(-1)} 
-      className="flex items-center text-gray-600 hover:text-green-600 mb-4 transition-colors font-medium text-sm"
+      onClick={() => navigate(-1)}
+      className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-medium mb-6 transition-colors"
     >
-      <ArrowLeft className="w-4 h-4 mr-1" /> Back
+      <ArrowLeft className="w-5 h-5" />
+      Back
     </button>
   );
 };
