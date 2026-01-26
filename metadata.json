@@ -1,0 +1,8 @@
+{
+  "name": "PharmaSafe Connect",
+  "description": "AI-powered household pharmaceutical waste management platform. Analyze medicine strips, classify risk, and schedule safe disposal pickups.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
