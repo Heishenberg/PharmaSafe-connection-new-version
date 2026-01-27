@@ -61,6 +61,12 @@ export const AgentAuth: React.FC = () => {
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent submission if not on final step (handles Enter key presses)
+    if (step < 3) {
+      handleNext();
+      return;
+    }
+
     // Save to LocalStorage
     const agentProfile = {
       ...formData,
@@ -77,6 +83,13 @@ export const AgentAuth: React.FC = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Task 1: Fix Login Validation
+    if (!loginId || !loginPass) {
+      alert('Please enter Valid Agent ID and Password');
+      return;
+    }
+
     // Simulate login
     navigate('/agent');
   };

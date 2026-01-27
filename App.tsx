@@ -9,6 +9,9 @@ import { ScanPage } from './pages/user/ScanPage';
 import DashboardPage from './pages/user/DashboardPage';
 import { HomePage } from './pages/user/HomePage';
 import { AgentDashboard } from './pages/agent/AgentDashboard';
+import { EarningsPage } from './pages/agent/EarningsPage';
+import { SupportPage } from './pages/agent/SupportPage';
+import { PickupHistoryPage } from './pages/agent/PickupHistoryPage';
 import { MedicineAnalysis } from './types';
 import { Calendar } from 'lucide-react';
 import { saveUserPickup } from './utils/storage';
@@ -79,6 +82,9 @@ const App: React.FC = () => {
           
           {/* Agent App Routes */}
           <Route path="/agent" element={<AgentDashboard />} />
+          <Route path="/agent/earnings" element={<EarningsPage />} />
+          <Route path="/agent/support" element={<SupportPage />} />
+          <Route path="/agent/history" element={<PickupHistoryPage />} />
         </Routes>
       </main>
 

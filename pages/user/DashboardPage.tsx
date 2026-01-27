@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { BackButton } from '../../components/common/BackButton';
+import { ShareImpactButton } from '../../components/common/ShareImpactButton';
 import { 
   Scale, Leaf, Clock, Activity, ArrowUpRight, 
   Wallet, Trophy, Shield, Zap, Recycle, Award, Package, 
@@ -208,30 +209,46 @@ export default function DashboardPage() {
           {activeTab === 'overview' ? (
             /* OVERVIEW TAB CONTENT */
             <>
-                {/* Impact Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {stats.map((stat, idx) => (
-                    <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-teal-200 transition-colors">
-                        <div className="flex items-start justify-between mb-3">
-                        <div className={`p-3 rounded-xl ${stat.bg}`}>
-                            <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                        </div>
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full uppercase tracking-wider">
-                            <ArrowUpRight className="w-3 h-3" />
-                            Impact
-                        </span>
-                        </div>
-                        <div>
-                        <h3 className={`font-bold text-slate-900 mb-0.5 ${stat.highlight ? 'text-4xl text-green-600' : 'text-2xl'}`}>{stat.value}</h3>
-                        <p className="text-sm font-medium text-slate-500">{stat.label}</p>
-                        <p className="text-xs text-slate-400 mt-2">{stat.trend}</p>
-                        </div>
+                {/* Stats & Header Container for Screenshot */}
+                <div id="dashboard-stats-grid" className="space-y-4 rounded-xl p-2 md:p-0">
+                    {/* Header for Stats */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900">
+                          {profile ? `Good morning, ${profile.name.split(' ')[0]}` : 'Your Impact'}
+                        </h3>
+                        <p className="text-sm text-slate-500">Here is your eco-impact summary.</p>
+                      </div>
+                      <div data-html2canvas-ignore="true">
+                         <ShareImpactButton targetId="dashboard-stats-grid" />
+                      </div>
                     </div>
-                    ))}
+
+                    {/* Impact Stats - ID removed from here */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-2 -m-2 bg-slate-50/50 rounded-xl">
+                        {stats.map((stat, idx) => (
+                        <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-teal-200 transition-colors">
+                            <div className="flex items-start justify-between mb-3">
+                            <div className={`p-3 rounded-xl ${stat.bg}`}>
+                                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                            </div>
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full uppercase tracking-wider">
+                                <ArrowUpRight className="w-3 h-3" />
+                                Impact
+                            </span>
+                            </div>
+                            <div>
+                            <h3 className={`font-bold text-slate-900 mb-0.5 ${stat.highlight ? 'text-4xl text-green-600' : 'text-2xl'}`}>{stat.value}</h3>
+                            <p className="text-sm font-medium text-slate-500">{stat.label}</p>
+                            <p className="text-xs text-slate-400 mt-2">{stat.trend}</p>
+                            </div>
+                        </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Activity Feed */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-500">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-500 mt-8">
                     <div className="p-6 border-b border-slate-100 bg-slate-50/50">
                     <h3 className="font-bold text-slate-900 flex items-center gap-2 text-lg">
                         <Activity className="w-5 h-5 text-teal-600" />

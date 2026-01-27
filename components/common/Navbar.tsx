@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Pill, LayoutDashboard, Map, ScanLine, LogOut } from 'lucide-react';
+import { Pill, LayoutDashboard, ScanLine, LogOut, Bell } from 'lucide-react';
 import { Logo } from '../Logo';
 
 export const Navbar: React.FC = () => {
@@ -16,7 +16,6 @@ export const Navbar: React.FC = () => {
     if (path === '/user-home') return 'HOME';
     if (path.startsWith('/scan')) return 'SCAN';
     if (path.startsWith('/dashboard')) return 'DASHBOARD';
-    if (path.startsWith('/agent')) return 'AGENT'; 
     return '';
   };
 
@@ -26,8 +25,13 @@ export const Navbar: React.FC = () => {
     { id: 'HOME', icon: Pill, label: 'Home', path: '/user-home' },
     { id: 'SCAN', icon: ScanLine, label: 'Scan', path: '/scan' },
     { id: 'DASHBOARD', icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { id: 'AGENT', icon: Map, label: 'Locate', path: '/agent' },
-  ] as const;
+    { 
+      id: 'NOTIFICATIONS', 
+      icon: Bell, 
+      label: 'Notifications', 
+      action: () => alert('No new notifications') 
+    },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 pb-safe z-50 md:top-0 md:bottom-auto md:border-t-0 md:border-b md:h-20">
@@ -45,7 +49,7 @@ export const Navbar: React.FC = () => {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => navigate(item.path)}
+                onClick={() => item.path ? navigate(item.path) : item.action?.()}
                 className={`flex flex-col md:flex-row items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2.5 rounded-xl transition-all duration-200 ${
                   currentView === item.id 
                     ? 'text-teal-700 md:bg-teal-50' 
