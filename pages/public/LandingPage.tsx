@@ -1,17 +1,23 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Leaf, Droplets, Wallet, TrendingUp, ShieldCheck, Truck, 
   Star, ChevronDown, ChevronUp, Mail, Linkedin, Instagram, 
-  Youtube
+  Youtube, LayoutDashboard
 } from 'lucide-react';
 import { Logo } from '../../components/Logo';
+import { getFeedbacks, FeedbackItem } from '../../utils/feedbackStorage';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [reviews, setReviews] = useState<FeedbackItem[]>([]);
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
+    // Load reviews from storage
+    const loadedReviews = getFeedbacks();
+    setReviews(loadedReviews.slice(0, 4)); // Only show latest 4
   }, []);
 
   return (
@@ -156,34 +162,16 @@ export const LandingPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <ReviewCard 
-              type="user"
-              name="Sarah Jenkins"
-              role="Mother of two"
-              content="Saved my kids from accidental poisoning! The AI identification feature is a lifesaver for checking old meds."
-              rating={5}
-            />
-            <ReviewCard 
-              type="agent"
-              name="Vikram Singh"
-              role="Fleet Owner"
-              content="Best logistics platform for medical waste. The route optimization helps me save fuel and time every day."
-              rating={5}
-            />
-            <ReviewCard 
-              type="user"
-              name="David Chen"
-              role="Environmentalist"
-              content="Finally, a way to dispose of medicines without polluting our water systems. The credit system is a great bonus!"
-              rating={4}
-            />
-            <ReviewCard 
-              type="agent"
-              name="Rahul Sharma"
-              role="Planet Prescription Agent"
-              content="Verified pickups mean safer work conditions for us. The dedicated app makes the job professional and easy."
-              rating={5}
-            />
+            {reviews.map((review) => (
+              <ReviewCard 
+                key={review.id}
+                type={review.type}
+                name={review.name}
+                role={review.role}
+                content={review.content}
+                rating={review.rating}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -260,6 +248,17 @@ export const LandingPage: React.FC = () => {
               <li className="hover:text-white cursor-pointer">Privacy Policy</li>
               <li className="hover:text-white cursor-pointer">Terms of Service</li>
               <li className="hover:text-white cursor-pointer">Compliance</li>
+              
+              {/* Highlighted Admin Button */}
+              <li className="mt-6 pt-4 border-t border-slate-800">
+                <button 
+                  onClick={() => navigate('/admin-login')}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-blue-600 border border-slate-700 hover:border-blue-500 rounded-lg text-slate-300 hover:text-white transition-all text-xs font-bold uppercase tracking-widest w-full justify-center group"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-blue-500 group-hover:text-white transition-colors" />
+                  Admin Portal
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -278,13 +277,13 @@ export const LandingPage: React.FC = () => {
 const ReviewCard = ({ type, name, role, content, rating }: { type: 'user' | 'agent', name: string, role: string, content: string, rating: number }) => {
   const isUser = type === 'user';
   return (
-    <div className={`p-6 rounded-2xl border ${isUser ? 'bg-green-50/50 border-green-100' : 'bg-slate-800 border-slate-700 text-white'} transition-all hover:-translate-y-1 duration-300 shadow-sm`}>
+    <div className={`p-6 rounded-2xl border ${isUser ? 'bg-green-50/50 border-green-100' : 'bg-slate-800 border-slate-700 text-white'} transition-all hover:-translate-y-1 duration-300 shadow-sm flex flex-col h-full`}>
       <div className="flex gap-1 mb-3">
         {[...Array(rating)].map((_, i) => (
           <Star key={i} className={`w-4 h-4 ${isUser ? 'text-amber-400' : 'text-orange-500'} fill-current`} />
         ))}
       </div>
-      <p className={`text-sm mb-4 leading-relaxed ${isUser ? 'text-slate-700' : 'text-slate-300'}`}>"{content}"</p>
+      <p className={`text-sm mb-4 leading-relaxed flex-1 ${isUser ? 'text-slate-700' : 'text-slate-300'}`}>"{content}"</p>
       <div className="flex items-center gap-3">
          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${isUser ? 'bg-teal-100 text-teal-700' : 'bg-orange-500/20 text-orange-500 border border-orange-500/30'}`}>
             {name.charAt(0)}

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Phone, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send } from 'lucide-react';
+import { AgentFeedbackForm } from '../../components/agent/AgentFeedbackForm';
 
 export const SupportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export const SupportPage: React.FC = () => {
             </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
             {/* FAQs */}
             <div>
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -65,33 +66,40 @@ export const SupportPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Ticket Form */}
-            <div>
-                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-teal-500" /> Report an Issue
-                </h3>
-                <form className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Issue Type</label>
-                        <select className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-300 outline-none focus:border-teal-500">
-                            <option>Payment Issue</option>
-                            <option>Route / App Bug</option>
-                            <option>Vehicle Problem</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Description</label>
-                        <textarea 
-                            rows={4}
-                            placeholder="Describe your issue in detail..."
-                            className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-300 outline-none focus:border-teal-500 resize-none"
-                        ></textarea>
-                    </div>
-                    <button type="button" className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
-                        <Send className="w-4 h-4" /> Submit Ticket
-                    </button>
-                </form>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Ticket Form */}
+                <div>
+                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5 text-teal-500" /> Report an Issue
+                    </h3>
+                    <form className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4 h-full">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Issue Type</label>
+                            <select className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-300 outline-none focus:border-teal-500">
+                                <option>Payment Issue</option>
+                                <option>Route / App Bug</option>
+                                <option>Vehicle Problem</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Description</label>
+                            <textarea 
+                                rows={4}
+                                placeholder="Describe your issue in detail..."
+                                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-300 outline-none focus:border-teal-500 resize-none"
+                            ></textarea>
+                        </div>
+                        <button type="button" className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                            <Send className="w-4 h-4" /> Submit Ticket
+                        </button>
+                    </form>
+                </div>
+
+                {/* Feedback Form */}
+                <div>
+                    <AgentFeedbackForm />
+                </div>
             </div>
         </div>
       </div>

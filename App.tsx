@@ -5,6 +5,7 @@ import { Navbar } from './components/common/Navbar';
 import { LandingPage } from './pages/public/LandingPage';
 import { UserAuth } from './pages/auth/UserAuth';
 import { AgentAuth } from './pages/auth/AgentAuth';
+import { AdminAuth } from './pages/auth/AdminAuth';
 import { ScanPage } from './pages/user/ScanPage';
 import DashboardPage from './pages/user/DashboardPage';
 import { HomePage } from './pages/user/HomePage';
@@ -12,6 +13,12 @@ import { AgentDashboard } from './pages/agent/AgentDashboard';
 import { EarningsPage } from './pages/agent/EarningsPage';
 import { SupportPage } from './pages/agent/SupportPage';
 import { PickupHistoryPage } from './pages/agent/PickupHistoryPage';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminOverview } from './pages/admin/sections/AdminOverview';
+import { AdminUsers } from './pages/admin/sections/AdminUsers';
+import { AdminFleet } from './pages/admin/sections/AdminFleet';
+import { AdminAnalytics } from './pages/admin/sections/AdminAnalytics';
+import { AdminSettings } from './pages/admin/sections/AdminSettings';
 import { MedicineAnalysis } from './types';
 import { Calendar } from 'lucide-react';
 import { saveUserPickup } from './utils/storage';
@@ -25,11 +32,12 @@ const App: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState('');
 
   // Routes where the User Navbar should be hidden
-  const hideNavbarRoutes = ['/', '/user-login', '/agent-login'];
-  // Also hide if in agent portal
+  const hideNavbarRoutes = ['/', '/user-login', '/agent-login', '/admin', '/admin-login'];
+  // Also hide if in agent portal or admin portal
   const isAgentPortal = location.pathname.startsWith('/agent') && location.pathname !== '/agent-login';
+  const isAdminPortal = location.pathname.startsWith('/admin') || location.pathname === '/admin-login';
   
-  const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname) && !isAgentPortal;
+  const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname) && !isAgentPortal && !isAdminPortal;
 
   useEffect(() => {
     console.log('App running');
@@ -68,12 +76,13 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen font-sans ${isAgentPortal ? 'bg-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen font-sans ${isAgentPortal || isAdminPortal ? 'bg-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       <main className={`min-h-screen ${shouldShowNavbar ? 'md:pt-20' : ''}`}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/user-login" element={<UserAuth />} />
           <Route path="/agent-login" element={<AgentAuth />} />
+          <Route path="/admin-login" element={<AdminAuth />} />
           
           {/* User App Routes */}
           <Route path="/user-home" element={<HomePage onStart={() => navigate('/scan')} />} />
@@ -85,6 +94,15 @@ const App: React.FC = () => {
           <Route path="/agent/earnings" element={<EarningsPage />} />
           <Route path="/agent/support" element={<SupportPage />} />
           <Route path="/agent/history" element={<PickupHistoryPage />} />
+
+          {/* Admin App Routes */}
+          <Route path="/admin" element={<AdminDashboard />}>
+             <Route index element={<AdminOverview />} />
+             <Route path="users" element={<AdminUsers />} />
+             <Route path="fleet" element={<AdminFleet />} />
+             <Route path="analytics" element={<AdminAnalytics />} />
+             <Route path="settings" element={<AdminSettings />} />
+          </Route>
         </Routes>
       </main>
 

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { BackButton } from '../../components/common/BackButton';
 import { ShareImpactButton } from '../../components/common/ShareImpactButton';
+import { UserFeedbackForm } from '../../components/user/UserFeedbackForm';
 import { 
   Scale, Leaf, Clock, Activity, ArrowUpRight, 
   Wallet, Trophy, Shield, Zap, Recycle, Award, Package, 
@@ -174,32 +175,8 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          {/* Badges Section */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-amber-500" /> Achievements
-            </h3>
-            <div className="flex justify-between items-center">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center border border-amber-100 text-amber-500">
-                  <Zap className="w-6 h-6" />
-                </div>
-                <span className="text-[10px] font-medium text-slate-600">First Scan</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center border border-blue-100 text-blue-500">
-                  <Shield className="w-6 h-6" />
-                </div>
-                <span className="text-[10px] font-medium text-slate-600">Antibiotic Saver</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 text-center">
-                 <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center border border-green-100 text-green-600">
-                  <Recycle className="w-6 h-6" />
-                </div>
-                <span className="text-[10px] font-medium text-slate-600">Super Recycler</span>
-              </div>
-            </div>
-          </div>
+          {/* Feedback Section (New) */}
+          <UserFeedbackForm />
 
         </div>
 
@@ -224,7 +201,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Impact Stats - ID removed from here */}
+                    {/* Impact Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-2 -m-2 bg-slate-50/50 rounded-xl">
                         {stats.map((stat, idx) => (
                         <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-teal-200 transition-colors">
