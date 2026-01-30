@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { 
   Users, Truck, Scale, Settings, 
-  BarChart3, LogOut, ChevronDown, Bell
+  BarChart3, LogOut, ChevronDown, Bell, Building2
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Logo } from '../../components/Logo';
@@ -50,7 +50,7 @@ export const AdminDashboard: React.FC = () => {
            <AdminNavItem 
               icon={BarChart3} 
               label="Overview" 
-              active={isActive('/admin')} 
+              active={isActive('/admin') && location.pathname === '/admin'} 
               onClick={() => navigate('/admin')} 
            />
            <AdminNavItem 
@@ -58,6 +58,12 @@ export const AdminDashboard: React.FC = () => {
               label="User Management" 
               active={isActive('/admin/users')} 
               onClick={() => navigate('/admin/users')} 
+           />
+           <AdminNavItem 
+              icon={Building2} 
+              label="Hospitals" 
+              active={isActive('/admin/hospitals')} 
+              onClick={() => navigate('/admin/hospitals')} 
            />
            <AdminNavItem 
               icon={Truck} 

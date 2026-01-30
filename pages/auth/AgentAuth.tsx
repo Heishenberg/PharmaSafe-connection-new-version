@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Truck, CreditCard, ChevronRight, ChevronLeft, Upload, CheckCircle, ShieldCheck } from 'lucide-react';
 import { Logo } from '../../components/Logo';
 import { saveAgentProfile } from '../../utils/storage';
+import { VoiceInput } from '../../components/common/VoiceInput';
 
 export const AgentAuth: React.FC = () => {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ export const AgentAuth: React.FC = () => {
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Prevent submission if not on final step (handles Enter key presses)
+    // Prevent submission if not on final step
     if (step < 3) {
       handleNext();
       return;
@@ -84,7 +85,6 @@ export const AgentAuth: React.FC = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Task 1: Fix Login Validation
     if (!loginId || !loginPass) {
       alert('Please enter Valid Agent ID and Password');
       return;
@@ -130,7 +130,7 @@ export const AgentAuth: React.FC = () => {
                 <form onSubmit={handleLogin} className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
                     <div>
                         <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Agent ID / Phone</label>
-                        <input 
+                        <VoiceInput 
                             value={loginId} onChange={e => setLoginId(e.target.value)}
                             className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                             placeholder="e.g. AG-2024"
@@ -188,20 +188,20 @@ export const AgentAuth: React.FC = () => {
                                 </div>
                             </div>
 
-                            <input name="name" value={formData.name} onChange={handleInputChange} placeholder="Full Name" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 outline-none focus:border-orange-500 text-sm" />
+                            <VoiceInput name="name" value={formData.name} onChange={handleInputChange} placeholder="Full Name" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 outline-none focus:border-orange-500 text-sm" />
                             
                             <div className="grid grid-cols-2 gap-4">
-                                <input name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone Number" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 outline-none focus:border-orange-500 text-sm" />
-                                <input name="aadhar" value={formData.aadhar} onChange={handleInputChange} placeholder="Aadhar Number" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 outline-none focus:border-orange-500 text-sm" />
+                                <VoiceInput name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone Number" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 outline-none focus:border-orange-500 text-sm" />
+                                <VoiceInput name="aadhar" value={formData.aadhar} onChange={handleInputChange} placeholder="Aadhar Number" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 outline-none focus:border-orange-500 text-sm" />
                             </div>
 
                             <div className="grid grid-cols-3 gap-4">
-                                <input name="age" type="number" value={formData.age} onChange={handleInputChange} placeholder="Age" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 outline-none focus:border-orange-500 text-sm" />
+                                <VoiceInput name="age" type="number" value={formData.age} onChange={handleInputChange} placeholder="Age" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 outline-none focus:border-orange-500 text-sm" />
                                 <select name="gender" value={formData.gender} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-2.5 outline-none focus:border-orange-500 text-sm">
                                     <option>Male</option>
                                     <option>Female</option>
                                 </select>
-                                <input name="city" value={formData.city} onChange={handleInputChange} placeholder="City" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 outline-none focus:border-orange-500 text-sm" />
+                                <VoiceInput name="city" value={formData.city} onChange={handleInputChange} placeholder="City" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 outline-none focus:border-orange-500 text-sm" />
                             </div>
                         </div>
                     )}
@@ -230,7 +230,7 @@ export const AgentAuth: React.FC = () => {
 
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">License Plate Number</label>
-                                <input name="licenseNumber" value={formData.licenseNumber} onChange={handleInputChange} placeholder="DL 01 AB 1234" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-orange-500 uppercase tracking-widest font-mono" />
+                                <VoiceInput name="licenseNumber" value={formData.licenseNumber} onChange={handleInputChange} placeholder="DL 01 AB 1234" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-orange-500 uppercase tracking-widest font-mono" />
                             </div>
 
                             <div 
@@ -259,13 +259,13 @@ export const AgentAuth: React.FC = () => {
                                 <CreditCard className="w-5 h-5 text-orange-500" /> Bank Details
                             </h3>
                             
-                            <input name="accountNumber" value={formData.accountNumber} onChange={handleInputChange} placeholder="Account Number" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-orange-500 font-mono" />
+                            <VoiceInput name="accountNumber" value={formData.accountNumber} onChange={handleInputChange} placeholder="Account Number" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-orange-500 font-mono" />
                             
-                            <input name="bankName" value={formData.bankName} onChange={handleInputChange} placeholder="Bank Name" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-orange-500" />
+                            <VoiceInput name="bankName" value={formData.bankName} onChange={handleInputChange} placeholder="Bank Name" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-orange-500" />
                             
                             <div className="grid grid-cols-2 gap-4">
-                                <input name="branch" value={formData.branch} onChange={handleInputChange} placeholder="Branch" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-orange-500" />
-                                <input name="ifsc" value={formData.ifsc} onChange={handleInputChange} placeholder="IFSC Code" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-orange-500 uppercase" />
+                                <VoiceInput name="branch" value={formData.branch} onChange={handleInputChange} placeholder="Branch" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-orange-500" />
+                                <VoiceInput name="ifsc" value={formData.ifsc} onChange={handleInputChange} placeholder="IFSC Code" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-orange-500 uppercase" />
                             </div>
                         </div>
                     )}

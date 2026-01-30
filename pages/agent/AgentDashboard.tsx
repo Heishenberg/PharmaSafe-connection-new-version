@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, History, Wallet, LifeBuoy, LogOut, 
-  Bell, Truck, ChevronRight, CheckCircle, Clock, XCircle 
+  Bell, Truck, ChevronRight, CheckCircle, Clock, XCircle, Sparkles, Users 
 } from 'lucide-react';
 import { Logo } from '../../components/Logo';
 import { AgentStatusToggle } from '../../components/common/AgentStatusToggle';
@@ -17,6 +17,7 @@ import { ConnectivityBadge } from '../../components/agent/ConnectivityBadge';
 import { CameraScannerModal } from '../../components/agent/CameraScannerModal';
 import { NoteEntryModal } from '../../components/agent/NoteEntryModal';
 import { getAgentProfile } from '../../utils/storage';
+import { reorderAgentRoute } from '../../utils/routeOptimizerSimulation';
 
 interface AgentProfile {
   name: string;
@@ -28,6 +29,7 @@ export const AgentDashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<AgentProfile>({ name: 'Rahul Sharma', id: 'AG-8821' });
   const [isOnline, setIsOnline] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
   
   // Modal States
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -46,7 +48,6 @@ export const AgentDashboard = () => {
   };
 
   const handleScanCapture = (image: string) => {
-    // In a real app, this would process the image and attach to selectedStopId if exists
     console.log("Captured image for processing", selectedStopId ? `for Stop ${selectedStopId}` : 'Generic Scan');
     setIsScannerOpen(false);
     setSelectedStopId(null);
@@ -56,20 +57,35 @@ export const AgentDashboard = () => {
     console.log(`Note saved for stop ${selectedStopId}:`, note);
     setIsNoteModalOpen(false);
     setSelectedStopId(null);
-    // In a real app, this would update the stop's data
     alert("Note saved successfully!");
   };
 
-  // State for Stops and Stats
+  // State for Stops - Added Lat/Lng for simulation
   const [activeStops, setActiveStops] = useState([
-    { id: '101', name: 'Varsha Patel', phoneNumber: '+919876543210', address: '12, Omni Towers, Sector 4', timeSlot: '09:00 - 09:30', riskLevel: 'Low' as const, distance: '2.1 km' },
-    { id: '102', name: 'Jagdish Pillai', phoneNumber: '+919876543211', address: '45/B, Green Heights, Main Rd', timeSlot: '09:45 - 10:15', riskLevel: 'High' as const, distance: '3.4 km' },
-    { id: '103', name: 'Ashish Verma', phoneNumber: '+919876543212', address: 'Shop 4, City Center Mall', timeSlot: '10:30 - 11:00', riskLevel: 'Low' as const, distance: '5.2 km' },
-    { id: '104', name: 'Meera Deshmukh', phoneNumber: '+919876543213', address: 'B-202, Sunshine Apts', timeSlot: '11:15 - 11:45', riskLevel: 'Low' as const, distance: '6.8 km' },
-    { id: '105', name: 'Kunal Shah', phoneNumber: '+919876543214', address: 'Plot 88, Ind. Estate', timeSlot: '12:00 - 12:30', riskLevel: 'High' as const, distance: '8.1 km' },
+    { id: '101', name: 'Varsha Patel', phoneNumber: '+919876543210', address: '12, Omni Towers, Sector 4', timeSlot: '09:00 - 09:30', riskLevel: 'Low' as const, distance: '2.1 km', lat: 19.1136, lng: 72.8697 },
+    { id: '102', name: 'Jagdish Pillai', phoneNumber: '+919876543211', address: '45/B, Green Heights, Main Rd', timeSlot: '09:45 - 10:15', riskLevel: 'High' as const, distance: '3.4 km', lat: 19.0596, lng: 72.8295 },
+    { id: '103', name: 'Ashish Verma', phoneNumber: '+919876543212', address: 'Shop 4, City Center Mall', timeSlot: '10:30 - 11:00', riskLevel: 'Low' as const, distance: '5.2 km', lat: 19.1150, lng: 72.8690 },
+    { id: '104', name: 'Meera Deshmukh', phoneNumber: '+919876543213', address: 'B-202, Sunshine Apts', timeSlot: '11:15 - 11:45', riskLevel: 'Low' as const, distance: '6.8 km', lat: 19.0600, lng: 72.8300 },
+    { id: '105', name: 'Kunal Shah', phoneNumber: '+919876543214', address: 'Plot 88, Ind. Estate', timeSlot: '12:00 - 12:30', riskLevel: 'High' as const, distance: '8.1 km', lat: 19.1140, lng: 72.8700 },
   ]);
 
   const [stats, setStats] = useState({ completed: 0, rescheduled: 0, skipped: 0 });
+
+  // Optimization Handler
+  const handleOptimizeRoute = async () => {
+    if (activeStops.length < 2) return;
+    setIsOptimizing(true);
+    
+    try {
+      const optimized = await reorderAgentRoute(activeStops);
+      setActiveStops(optimized);
+      alert('✨ Route Optimized! AI has reordered stops to save approx 1.2km.');
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
 
   // Stop Action Handlers
   const handleComplete = (id: string) => {
@@ -146,6 +162,7 @@ export const AgentDashboard = () => {
           <NavItem icon={History} label="Job History" onClick={() => navigate('/agent/history')} />
           <NavItem icon={Wallet} label="Earnings" onClick={() => navigate('/agent/earnings')} />
           <NavItem icon={LifeBuoy} label="Support" onClick={() => navigate('/agent/support')} />
+          <NavItem icon={Users} label="Community" onClick={() => navigate('/community')} />
         </nav>
 
         {/* Sidebar Footer Profile */}
@@ -221,7 +238,7 @@ export const AgentDashboard = () => {
                {/* Row 2: Main Grid */}
                <div className="grid grid-cols-12 gap-6">
                   
-                  {/* LEFT COLUMN (Map & AI) - Refactored for Flexbox fix */}
+                  {/* LEFT COLUMN (Map & AI) */}
                   <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
                      
                      {/* 1. Map Container - Enforce Height */}
@@ -229,6 +246,26 @@ export const AgentDashboard = () => {
                         <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-600 rounded-2xl opacity-20 group-hover:opacity-30 transition duration-500 blur"></div>
                         <div className="relative bg-slate-900 rounded-2xl p-1 h-full shadow-2xl overflow-hidden z-0">
                            <AgentLiveMap isExpanded={true} />
+                           
+                           {/* Optimize Path Button Overlay */}
+                           <div className="absolute top-4 left-4 z-20">
+                              <button 
+                                onClick={handleOptimizeRoute}
+                                disabled={isOptimizing || activeStops.length < 2}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-indigo-700 font-bold rounded-lg shadow-lg backdrop-blur-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {isOptimizing ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                                    Calculating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="w-4 h-4" /> Optimize Path
+                                  </>
+                                )}
+                              </button>
+                           </div>
                         </div>
                      </div>
 

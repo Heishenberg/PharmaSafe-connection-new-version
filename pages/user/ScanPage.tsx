@@ -1,9 +1,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, RefreshCw, AlertCircle, X, Zap, ArrowLeft, CheckCircle, FileText, MapPin, Calendar, Clock, Navigation } from 'lucide-react';
+import { Camera, Upload, RefreshCw, AlertCircle, X, Zap, ArrowLeft, CheckCircle, FileText, MapPin, Calendar, Clock, Navigation, Plus, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AnalysisCard } from '../../components/AnalysisCard';
-import { analyzeMedicineImage } from '../../services/geminiService';
+import { VoiceInput } from '../../components/common/VoiceInput';
+import { VoiceTextarea } from '../../components/common/VoiceTextarea';
+import { analyzeMultipleMedicines } from '../../services/geminiService';
 import { MedicineAnalysis, RiskLevel } from '../../types';
 import { saveUserPickup } from '../../utils/storage';
 
@@ -11,19 +13,27 @@ interface ScanPageProps {
   onSchedulePickup?: (analysis: MedicineAnalysis) => void;
 }
 
-type Step = 'identify' | 'pickup' | 'success';
+type Step = 'identify' | 'results' | 'pickup' | 'success';
+
+interface BatchItem {
+  id: string;
+  type: 'image' | 'text';
+  content: string; // DataURL for image, Name for text
+  manualDetails?: any;
+}
 
 export const ScanPage: React.FC<ScanPageProps> = () => {
   const navigate = useNavigate();
   
   // Flow State
   const [step, setStep] = useState<Step>('identify');
-  const [confirmedMedicine, setConfirmedMedicine] = useState<MedicineAnalysis | null>(null);
+  
+  // Batch State
+  const [scannedItems, setScannedItems] = useState<BatchItem[]>([]);
+  const [batchResults, setBatchResults] = useState<MedicineAnalysis[]>([]);
 
   // Identify Step States
-  const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<MedicineAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -63,6 +73,29 @@ export const ScanPage: React.FC<ScanPageProps> = () => {
     }
   }, [isCameraOpen, stream]);
 
+  // --- Helpers: Item Management ---
+  const addItem = (item: Omit<BatchItem, 'id'>) => {
+    const newItem = { ...item, id: Date.now().toString() + Math.random() };
+    setScannedItems(prev => [...prev, newItem]);
+    // Reset Views
+    setIsManualEntry(false);
+    stopCamera();
+    // Reset Forms
+    setManualForm({ name: '', purpose: '', mfgDate: '', expiryDate: '', price: '' });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeItem = (id: string) => {
+    setScannedItems(prev => prev.filter(i => i.id !== id));
+  };
+
+  // Helper to convert DataURL to File
+  const dataURLtoFile = async (dataurl: string, filename: string): Promise<File> => {
+    const res = await fetch(dataurl);
+    const blob = await res.blob();
+    return new File([blob], filename, { type: 'image/jpeg' });
+  };
+
   // --- Handlers: Camera & Image ---
   const startCamera = async () => {
     try {
@@ -72,9 +105,6 @@ export const ScanPage: React.FC<ScanPageProps> = () => {
       });
       setStream(mediaStream);
       setIsCameraOpen(true);
-      setImage(null);
-      setAnalysis(null);
-      setIsManualEntry(false);
     } catch (err) {
       console.error("Camera Error:", err);
       setError("Unable to access camera. Please check permissions.");
@@ -99,22 +129,8 @@ export const ScanPage: React.FC<ScanPageProps> = () => {
       if (context) {
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        setImage(dataUrl);
-        stopCamera();
+        addItem({ type: 'image', content: dataUrl });
       }
-    }
-  };
-
-  const handleRetake = () => {
-    setImage(null);
-    setAnalysis(null);
-    setConfirmedMedicine(null);
-    startCamera();
-  };
-
-  const handleAnalyze = () => {
-    if (image) {
-      performAnalysis(image.split(',')[1]);
     }
   };
 
@@ -123,95 +139,97 @@ export const ScanPage: React.FC<ScanPageProps> = () => {
     if (!file) return;
 
     setError(null);
-    setAnalysis(null);
-    setIsManualEntry(false);
-    
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
-      setImage(base64String);
+      addItem({ type: 'image', content: base64String });
     };
     reader.readAsDataURL(file);
   };
 
-  const performAnalysis = async (base64Data: string) => {
+  // --- Handlers: Manual Entry ---
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    addItem({ 
+      type: 'text', 
+      content: manualForm.name, 
+      manualDetails: { ...manualForm } 
+    });
+  };
+
+  // --- Handlers: Analysis ---
+  const handleBatchAnalyze = async () => {
+    if (scannedItems.length === 0) return;
+    
     setIsAnalyzing(true);
     setError(null);
+    
     try {
-      const result = await analyzeMedicineImage(base64Data);
-      setAnalysis(result);
+      const promises = scannedItems.map(async (item, index) => {
+        if (item.type === 'image') {
+          const file = await dataURLtoFile(item.content, `scan_${index}.jpg`);
+          return await analyzeMultipleMedicines(file);
+        } else {
+          return [{
+            name: item.manualDetails?.name || item.content,
+            composition: item.manualDetails?.purpose || "Manual Entry",
+            expiryDate: item.manualDetails?.expiryDate || "Unknown",
+            riskLevel: RiskLevel.UNKNOWN, 
+            riskReason: "Manually entered",
+            disposalRecommendation: "Consult pharmacist or dispose at center"
+          }] as MedicineAnalysis[];
+        }
+      });
+
+      const nestedResults = await Promise.all(promises);
+      const flatResults = nestedResults.flat();
+      
+      setBatchResults(flatResults);
+      setStep('results');
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Analysis failed");
+      console.error(err);
+      setError("Batch analysis failed. Please try again.");
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const handleReset = () => {
-    setImage(null);
-    setAnalysis(null);
-    setConfirmedMedicine(null);
+    setScannedItems([]);
+    setBatchResults([]);
     setError(null);
     setIsManualEntry(false);
     setStep('identify');
-    if (fileInputRef.current) fileInputRef.current.value = '';
     stopCamera();
   };
 
-  // --- Handlers: Transitions ---
-
-  // Transition from Analysis -> Pickup
-  const proceedFromAnalysis = () => {
-    if (analysis) {
-      setConfirmedMedicine(analysis);
-      setStep('pickup');
-    }
-  };
-
-  // Transition from Manual Entry -> Pickup
-  const handleManualSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const manualAnalysis: MedicineAnalysis = {
-      name: manualForm.name,
-      composition: manualForm.purpose,
-      expiryDate: manualForm.expiryDate,
-      riskLevel: RiskLevel.UNKNOWN,
-      riskReason: 'Manually entered by user',
-      disposalRecommendation: 'Please consult local pharmacist'
-    };
-    setConfirmedMedicine(manualAnalysis);
+  // --- Handlers: Pickup ---
+  const handleProceedToPickup = () => {
     setStep('pickup');
   };
 
-  // Submit Pickup Form -> Success
   const confirmPickup = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!confirmedMedicine) return;
+    
+    const hasHighRisk = batchResults.some(r => r.riskLevel === RiskLevel.HIGH);
+    const combinedRisk = hasHighRisk ? RiskLevel.HIGH : RiskLevel.LOW;
+    
+    const names = batchResults.map(r => r.name).join(', ');
 
-    // 1. Construct Record
     const newRequest = {
       id: Date.now().toString(),
-      medicineName: confirmedMedicine.name,
+      medicineName: `${names.substring(0, 50)}${names.length > 50 ? '...' : ''} (${batchResults.length} items)`,
       pickupDate: pickupForm.date,
       timeSlot: pickupForm.timeSlot,
       status: 'Scheduled',
-      riskLevel: confirmedMedicine.riskLevel,
+      riskLevel: combinedRisk,
       timestamp: new Date().toISOString()
     };
 
-    console.log("Submitting Pickup:", {
-        medicine: confirmedMedicine,
-        details: pickupForm
-    });
-
-    // 2. Save using utility
     saveUserPickup(newRequest);
-
-    // 3. Move to Success
     setStep('success');
   };
 
-  // --- Render: Camera View (Overlay) ---
   if (isCameraOpen) {
     return (
       <div className="fixed inset-0 bg-black z-[60] flex flex-col">
@@ -238,38 +256,91 @@ export const ScanPage: React.FC<ScanPageProps> = () => {
     );
   }
 
-  // --- Render: Main Container ---
   return (
-    <div className="max-w-lg mx-auto p-4 space-y-6 pb-24 md:pb-8">
+    <div className="max-w-4xl mx-auto p-4 space-y-6 pb-24 md:pb-8">
       
-      {/* --- Step 1: Identify --- */}
       {step === 'identify' && (
         <>
           <header className="text-center mb-8">
             <h1 className="text-2xl font-bold text-slate-900">
-              {isManualEntry ? 'Manual Entry' : 'Scan Medicine'}
+              {isManualEntry ? 'Manual Entry' : 'Batch Scanning'}
             </h1>
             <p className="text-slate-500">
               {isManualEntry 
-                ? 'Enter details to identify medicine type.' 
-                : 'Take a photo or upload to analyze composition.'}
+                ? 'Enter details to add to batch.' 
+                : 'Take photos of your medicines. AI will identify multiple items per photo.'}
             </p>
           </header>
 
-          {/* Manual Entry Form */}
+          {!isManualEntry && scannedItems.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 animate-in slide-in-from-top-4 duration-300">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                        <Layers className="w-5 h-5 text-teal-600" />
+                        Pending Scans ({scannedItems.length})
+                    </h3>
+                    <button onClick={handleReset} className="text-xs text-red-500 hover:underline">Clear All</button>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                    {scannedItems.map((item, idx) => (
+                        <div key={item.id} className="relative flex-shrink-0 group">
+                            <div className="w-24 h-24 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center relative">
+                                {item.type === 'image' ? (
+                                    <img src={item.content} alt={`Item ${idx}`} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="text-center p-2">
+                                        <FileText className="w-8 h-8 text-slate-400 mx-auto mb-1" />
+                                        <p className="text-[10px] text-slate-600 font-bold truncate w-full">{item.content}</p>
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+                            </div>
+                            <button 
+                                onClick={() => removeItem(item.id)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm hover:bg-red-600 transition-colors"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </div>
+                    ))}
+                    <div 
+                        onClick={() => setIsManualEntry(true)} 
+                        className="w-24 h-24 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:text-teal-600 hover:border-teal-500 hover:bg-teal-50 cursor-pointer transition-colors flex-shrink-0"
+                    >
+                        <Plus className="w-6 h-6 mb-1" />
+                        <span className="text-[10px] font-bold">Add Manual</span>
+                    </div>
+                </div>
+            </div>
+          )}
+
           {isManualEntry && (
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 animate-in slide-in-from-right-8 duration-300">
               <button onClick={() => setIsManualEntry(false)} className="flex items-center gap-1 text-slate-500 hover:text-slate-800 text-sm font-medium mb-4 transition-colors">
-                <ArrowLeft className="w-4 h-4" /> Back to Scan
+                <ArrowLeft className="w-4 h-4" /> Cancel Entry
               </button>
               <form onSubmit={handleManualSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Medicine Name</label>
-                  <input required value={manualForm.name} onChange={e => setManualForm({...manualForm, name: e.target.value})} placeholder="e.g. Dolo 650" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none" />
+                  <VoiceInput 
+                    required 
+                    name="name"
+                    value={manualForm.name} 
+                    onChange={e => setManualForm({...manualForm, name: e.target.value})} 
+                    placeholder="e.g. Dolo 650" 
+                    className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Purpose</label>
-                  <input required value={manualForm.purpose} onChange={e => setManualForm({...manualForm, purpose: e.target.value})} placeholder="e.g. Fever, Pain" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none" />
+                  <VoiceInput 
+                    required 
+                    name="purpose"
+                    value={manualForm.purpose} 
+                    onChange={e => setManualForm({...manualForm, purpose: e.target.value})} 
+                    placeholder="e.g. Fever, Pain" 
+                    className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none" 
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -281,98 +352,108 @@ export const ScanPage: React.FC<ScanPageProps> = () => {
                     <input type="number" value={manualForm.price} onChange={e => setManualForm({...manualForm, price: e.target.value})} placeholder="0.00" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none" />
                   </div>
                 </div>
-                <button type="submit" className="w-full mt-2 bg-teal-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-teal-700 transition-all shadow-lg">
-                  Next: Pickup Details
+                <button type="submit" className="w-full mt-2 bg-slate-800 text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-900 transition-all shadow-lg flex items-center justify-center gap-2">
+                  <Plus className="w-5 h-5" /> Add to Batch
                 </button>
               </form>
             </div>
           )}
 
-          {/* Initial Scan Buttons */}
-          {!image && !isManualEntry && (
+          {!isManualEntry && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 gap-4">
-                <button onClick={startCamera} className="bg-teal-600 text-white p-8 rounded-2xl shadow-lg hover:bg-teal-700 transition-all flex flex-col items-center gap-3 group">
-                  <div className="bg-white/20 p-4 rounded-full group-hover:scale-110 transition-transform">
-                    <Camera className="w-8 h-8" />
+              {scannedItems.length > 0 && (
+                  <button 
+                    onClick={handleBatchAnalyze}
+                    disabled={isAnalyzing}
+                    className="w-full py-4 bg-teal-600 text-white font-bold text-lg rounded-2xl shadow-xl hover:bg-teal-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed animate-in fade-in slide-in-from-bottom-2"
+                  >
+                    {isAnalyzing ? (
+                        <>
+                            <RefreshCw className="w-5 h-5 animate-spin" /> Analyzing Batch...
+                        </>
+                    ) : (
+                        <>
+                            <Zap className="w-5 h-5 fill-current" /> Identify Medicines
+                        </>
+                    )}
+                  </button>
+              )}
+
+              {!isAnalyzing && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <button onClick={startCamera} className="bg-white border-2 border-slate-200 text-slate-700 p-6 rounded-2xl hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50 transition-all flex flex-col items-center gap-3">
+                        <Camera className="w-8 h-8" />
+                        <span className="font-bold text-sm">Camera</span>
+                    </button>
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-white border-2 border-slate-200 text-slate-700 p-6 rounded-2xl hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50 transition-all flex flex-col items-center gap-3 cursor-pointer"
+                    >
+                      <Upload className="w-8 h-8" />
+                      <span className="font-bold text-sm">Upload</span>
+                      <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+                    </div>
+                    <button onClick={() => setIsManualEntry(true)} className="bg-white border-2 border-slate-200 text-slate-700 p-6 rounded-2xl hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50 transition-all flex flex-col items-center gap-3 col-span-2 md:col-span-1">
+                        <FileText className="w-8 h-8" />
+                        <span className="font-bold text-sm">Manual</span>
+                    </button>
                   </div>
-                  <span className="text-lg font-bold">Open Camera</span>
-                </button>
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-300 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-teal-500 hover:bg-teal-50 transition-all text-slate-500 hover:text-teal-600"
-                >
-                  <Upload className="w-6 h-6 mb-2" />
-                  <span className="font-medium">Upload from Gallery</span>
-                  <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
-                </div>
-              </div>
-              <div className="text-center">
-                <button onClick={() => setIsManualEntry(true)} className="text-teal-600 font-medium text-sm hover:text-teal-700 hover:underline flex items-center justify-center gap-2 mx-auto py-2 px-4 rounded-lg hover:bg-teal-50 transition-colors">
-                  <FileText className="w-4 h-4" />
-                  Enter details manually
-                </button>
-              </div>
+              )}
             </div>
           )}
 
-          {/* Image Preview & Analyze Actions */}
-          {image && !analysis && !isAnalyzing && (
-            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
-              <div className="relative rounded-xl overflow-hidden shadow-lg aspect-[3/4] md:aspect-video bg-black">
-                <img src={image} alt="Captured medicine" className="w-full h-full object-contain" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <button onClick={handleRetake} className="py-3 px-4 rounded-xl font-semibold border-2 border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2">
-                  <RefreshCw className="w-5 h-5" /> Retake
-                </button>
-                <button onClick={handleAnalyze} className="py-3 px-4 rounded-xl font-semibold bg-teal-600 text-white hover:bg-teal-700 shadow-lg flex items-center justify-center gap-2">
-                  <Zap className="w-5 h-5" /> Analyze with AI
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Loading State */}
-          {isAnalyzing && (
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center animate-pulse">
-              <div className="w-16 h-16 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin mb-6"></div>
-              <h3 className="text-xl font-bold text-slate-900">Analyzing...</h3>
-              <p className="text-slate-500 mt-2">Identifying active ingredients & risks</p>
-            </div>
-          )}
-
-          {/* Error State */}
           {error && !isAnalyzing && (
-            <div className="bg-red-50 p-4 rounded-xl flex items-start gap-3 text-red-700 border border-red-100">
+            <div className="bg-red-50 p-4 rounded-xl flex items-start gap-3 text-red-700 border border-red-100 mt-4">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold">Analysis Failed</p>
+                <p className="font-bold">Analysis Error</p>
                 <p className="text-sm opacity-90 mt-1">{error}</p>
-                <button onClick={handleRetake} className="mt-3 text-sm font-semibold underline hover:text-red-800">Try Again</button>
-              </div>
-            </div>
-          )}
-
-          {/* Analysis Result */}
-          {analysis && (
-            <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
-              <AnalysisCard data={analysis} onSchedule={proceedFromAnalysis} />
-              <div className="mt-6 text-center">
-                <button onClick={handleReset} className="py-2 px-6 rounded-full bg-slate-100 text-slate-600 font-medium hover:bg-slate-200 transition-colors">
-                  Scan Another Item
-                </button>
               </div>
             </div>
           )}
         </>
       )}
 
-      {/* --- Step 2: Pickup Details --- */}
-      {step === 'pickup' && confirmedMedicine && (
+      {/* Rest of the file unchanged (results, pickup, success steps) */}
+      {step === 'results' && (
+        <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Items Identified</h2>
+                <div className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-bold">
+                    {batchResults.length} Found
+                </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl p-6 text-white shadow-lg mb-8 flex items-center justify-between">
+                <div>
+                    <p className="text-teal-100 text-sm font-bold uppercase tracking-wider">Total Potential Credits</p>
+                    <p className="text-4xl font-extrabold mt-1">{batchResults.length * 10}</p>
+                </div>
+                <div className="text-right">
+                    <p className="text-sm opacity-90">Keep scanning to earn more!</p>
+                    <button onClick={handleReset} className="mt-2 text-xs font-bold underline hover:text-teal-200">Discard & Start Over</button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {batchResults.map((result, idx) => (
+                    <AnalysisCard key={idx} data={result} hideAction={true} />
+                ))}
+            </div>
+
+            <button 
+                onClick={handleProceedToPickup}
+                className="w-full py-4 bg-teal-600 text-white font-bold rounded-xl shadow-lg hover:bg-teal-700 transition-all flex items-center justify-center gap-2"
+            >
+                Schedule Batch Pickup <ArrowLeft className="w-5 h-5 rotate-180" />
+            </button>
+        </div>
+      )}
+
+      {step === 'pickup' && (
         <div className="animate-in slide-in-from-right-8 duration-300">
           <div className="flex items-center gap-2 mb-6">
-             <button onClick={() => setStep('identify')} className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors">
+             <button onClick={() => setStep('results')} className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors">
                <ArrowLeft className="w-6 h-6" />
              </button>
              <h1 className="text-2xl font-bold text-slate-900">Pickup Details</h1>
@@ -383,8 +464,8 @@ export const ScanPage: React.FC<ScanPageProps> = () => {
                 <CheckCircle className="w-5 h-5 text-teal-700" />
              </div>
              <div>
-               <p className="text-sm font-bold text-teal-900">Disposing: {confirmedMedicine.name}</p>
-               <p className="text-xs text-teal-700 mt-0.5">{confirmedMedicine.riskLevel} - {confirmedMedicine.disposalRecommendation}</p>
+               <p className="text-sm font-bold text-teal-900">Batch Pickup: {batchResults.length} Items</p>
+               <p className="text-xs text-teal-700 mt-0.5">Scheduling collection for all analyzed items.</p>
              </div>
           </div>
 
@@ -394,21 +475,21 @@ export const ScanPage: React.FC<ScanPageProps> = () => {
                    <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
                      <MapPin className="w-4 h-4 text-slate-400" /> Address Line
                    </label>
-                   <textarea 
+                   <VoiceTextarea 
                      required 
                      rows={3}
                      value={pickupForm.address}
                      onChange={e => setPickupForm({...pickupForm, address: e.target.value})}
                      className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none resize-none bg-slate-50"
                      placeholder="Flat No, Street Name, Area..."
-                   ></textarea>
+                   />
                 </div>
 
                 <div>
                    <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
                      <Navigation className="w-4 h-4 text-slate-400" /> Landmark
                    </label>
-                   <input 
+                   <VoiceInput 
                      type="text"
                      value={pickupForm.landmark}
                      onChange={e => setPickupForm({...pickupForm, landmark: e.target.value})}
@@ -465,16 +546,15 @@ export const ScanPage: React.FC<ScanPageProps> = () => {
         </div>
       )}
 
-      {/* --- Step 3: Success --- */}
       {step === 'success' && (
         <div className="flex flex-col items-center justify-center py-12 px-4 animate-in zoom-in-95 duration-500">
            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 shadow-sm">
               <CheckCircle className="w-12 h-12 text-green-600" />
            </div>
            
-           <h2 className="text-3xl font-bold text-slate-900 mb-2 text-center">Pickup Scheduled!</h2>
+           <h2 className="text-3xl font-bold text-slate-900 mb-2 text-center">Batch Scheduled!</h2>
            <p className="text-slate-500 text-center max-w-xs mb-8">
-             Your collection agent will arrive on <span className="font-semibold text-slate-800">{pickupForm.date}</span> during the <span className="font-semibold text-slate-800">{pickupForm.timeSlot}</span> slot.
+             Your collection agent will arrive on <span className="font-semibold text-slate-800">{pickupForm.date}</span> to collect {batchResults.length} items.
            </p>
 
            <div className="w-full space-y-3">
@@ -488,7 +568,7 @@ export const ScanPage: React.FC<ScanPageProps> = () => {
                onClick={handleReset}
                className="w-full py-4 bg-white text-teal-700 font-bold rounded-xl border border-teal-100 hover:bg-teal-50 transition-all"
              >
-               Scan Another Item
+               Scan Another Batch
              </button>
            </div>
         </div>

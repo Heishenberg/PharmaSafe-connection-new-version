@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, ShieldAlert, ArrowRight, LayoutDashboard } from 'lucide-react';
+import { Lock, ShieldAlert, ArrowRight, LayoutDashboard, Wand2 } from 'lucide-react';
 import { Logo } from '../../components/Logo';
+import { VoiceInput } from '../../components/common/VoiceInput';
 
 export const AdminAuth: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +21,11 @@ export const AdminAuth: React.FC = () => {
     }
   };
 
+  const handleAutoFill = () => {
+    setCredentials({ id: 'ADMIN01', password: 'secure123' });
+    setError('');
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-md">
@@ -31,8 +37,8 @@ export const AdminAuth: React.FC = () => {
                 <Logo className="h-10 w-auto" />
              </div>
              <div className="text-left">
-                <h1 className="text-2xl font-bold text-white tracking-tight">Control Tower</h1>
-                <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">Admin Access Only</p>
+                <h1 className="text-2xl font-bold text-white tracking-tight">Planet Prescription</h1>
+                <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">Admin Control Center</p>
              </div>
           </div>
         </div>
@@ -47,7 +53,7 @@ export const AdminAuth: React.FC = () => {
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Admin ID</label>
-              <input 
+              <VoiceInput 
                 type="text" 
                 value={credentials.id}
                 onChange={(e) => setCredentials({...credentials, id: e.target.value})}
@@ -82,6 +88,23 @@ export const AdminAuth: React.FC = () => {
               Access Dashboard
               <LayoutDashboard className="w-5 h-5 group-hover:scale-110 transition-transform" />
             </button>
+
+            {/* Demo Credentials Section */}
+            <div className="pt-2">
+              <div className="bg-slate-900/50 border border-dashed border-slate-600 rounded-xl p-4 text-center">
+                <p className="text-xs text-slate-400 mb-2">
+                  <span className="font-bold text-slate-300">Demo Access:</span> ID: <span className="font-mono text-blue-300">ADMIN01</span> | Pass: <span className="font-mono text-blue-300">secure123</span>
+                </p>
+                <button 
+                  type="button"
+                  onClick={handleAutoFill}
+                  className="text-xs font-bold text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded-lg transition-all border border-blue-500/20 flex items-center justify-center gap-2 mx-auto w-full"
+                >
+                  <Wand2 className="w-3 h-3" /> Auto-fill Demo Credentials
+                </button>
+              </div>
+            </div>
+
           </form>
         </div>
 

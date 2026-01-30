@@ -1,30 +1,28 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Leaf, Droplets, Wallet, TrendingUp, ShieldCheck, Truck, 
-  Star, ChevronDown, ChevronUp, Mail, Linkedin, Instagram, 
-  Youtube, LayoutDashboard
+  Building2, Star, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { Logo } from '../../components/Logo';
-import { getFeedbacks, FeedbackItem } from '../../utils/feedbackStorage';
+import { Footer } from '../../components/common/Footer';
+import { RoleSelectionModal } from '../../components/auth/RoleSelectionModal';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const [reviews, setReviews] = useState<FeedbackItem[]>([]);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
-    // Load reviews from storage
-    const loadedReviews = getFeedbacks();
-    setReviews(loadedReviews.slice(0, 4)); // Only show latest 4
   }, []);
 
   return (
     <div className="min-h-screen font-sans bg-slate-50">
+      <RoleSelectionModal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} />
       
       {/* --- HERO SECTION --- */}
-      <div className="relative min-h-screen overflow-hidden flex flex-col">
+      <div id="impact" className="relative min-h-[90vh] overflow-hidden flex flex-col pt-10 md:pt-0">
         {/* Background Image */}
         <div 
           className="absolute inset-0 z-0"
@@ -40,13 +38,7 @@ export const LandingPage: React.FC = () => {
         {/* Content Container */}
         <div className="relative z-10 flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center py-12">
           
-          {/* Logo Area */}
-          <div className="absolute top-6 left-6 md:top-12 md:left-8 flex items-center gap-3">
-            <Logo className="h-12 w-auto drop-shadow-sm" />
-            <span className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Planet Prescription</span>
-          </div>
-
-          <div className="flex flex-col md:flex-row items-center gap-12 mt-16 md:mt-0">
+          <div className="flex flex-col md:flex-row items-center gap-12 mt-8 md:mt-0">
             {/* LEFT: Copy & Actions */}
             <div className="flex-1 text-center md:text-left space-y-8 animate-in slide-in-from-left-8 duration-700">
               <div className="space-y-4">
@@ -63,26 +55,38 @@ export const LandingPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
+              {/* THREE MAIN BUTTONS */}
+              <div className="flex flex-col lg:flex-row items-center gap-4 justify-center md:justify-start flex-wrap">
                 <button 
                   onClick={() => navigate('/user-login')}
-                  className="w-full sm:w-auto px-8 py-4 bg-teal-700 text-white rounded-xl font-bold shadow-xl hover:bg-teal-800 transition-all hover:scale-105 flex items-center justify-center gap-3"
+                  className="w-full sm:w-auto px-6 py-4 bg-teal-700 text-white rounded-xl font-bold shadow-xl hover:bg-teal-800 transition-all hover:scale-105 flex items-center justify-center gap-3"
                 >
                   <ShieldCheck className="w-6 h-6" />
                   <div className="text-left">
-                    <span className="block text-xs opacity-80 uppercase tracking-wide">For Households</span>
-                    <span className="block leading-none">Dispose Medicine Safely</span>
+                    <span className="block text-xs opacity-80 uppercase tracking-wide">User</span>
+                    <span className="block leading-none">Dispose Medicine</span>
                   </div>
                 </button>
                 
                 <button 
                   onClick={() => navigate('/agent-login')}
-                  className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-orange-500 border border-orange-500/30 rounded-xl font-bold shadow-xl hover:bg-slate-800 transition-all hover:scale-105 flex items-center justify-center gap-3"
+                  className="w-full sm:w-auto px-6 py-4 bg-slate-900 text-orange-500 border border-orange-500/30 rounded-xl font-bold shadow-xl hover:bg-slate-800 transition-all hover:scale-105 flex items-center justify-center gap-3"
                 >
                   <Truck className="w-6 h-6" />
                   <div className="text-left">
-                    <span className="block text-xs opacity-80 uppercase tracking-wide text-orange-400">For Logistics</span>
+                    <span className="block text-xs opacity-80 uppercase tracking-wide text-orange-400">Agent</span>
                     <span className="block leading-none">Partner Login</span>
+                  </div>
+                </button>
+
+                <button 
+                  onClick={() => navigate('/hospital-login')}
+                  className="w-full sm:w-auto px-6 py-4 bg-cyan-700 text-white border border-cyan-500/30 rounded-xl font-bold shadow-xl hover:bg-cyan-800 transition-all hover:scale-105 flex items-center justify-center gap-3"
+                >
+                  <Building2 className="w-6 h-6" />
+                  <div className="text-left">
+                    <span className="block text-xs opacity-80 uppercase tracking-wide text-cyan-200">Hospital</span>
+                    <span className="block leading-none">Partner Portal</span>
                   </div>
                 </button>
               </div>
@@ -153,8 +157,42 @@ export const LandingPage: React.FC = () => {
         </div>
       </div>
 
+      {/* --- HOW IT WORKS SECTION --- */}
+      <section id="how-it-works" className="py-20 px-4 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-teal-600 font-bold uppercase tracking-wider text-sm mb-2 block">Simple Process</span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900">How It Works</h2>
+            <p className="text-slate-500 max-w-2xl mx-auto mt-4">Join the movement in three easy steps.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+             <div className="flex flex-col items-center">
+                <div className="w-20 h-20 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-6">
+                   <ShieldCheck className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">1. Scan Medicine</h3>
+                <p className="text-slate-500">Use AI to identify if the medicine is high-risk or standard.</p>
+             </div>
+             <div className="flex flex-col items-center">
+                <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-6">
+                   <Truck className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">2. Schedule Pickup</h3>
+                <p className="text-slate-500">A certified collection agent picks it up from your doorstep.</p>
+             </div>
+             <div className="flex flex-col items-center">
+                <div className="w-20 h-20 bg-cyan-100 text-cyan-600 rounded-full flex items-center justify-center mb-6">
+                   <Wallet className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">3. Earn Rewards</h3>
+                <p className="text-slate-500">Get Green Credits redeemable for discounts and insurance.</p>
+             </div>
+          </div>
+        </div>
+      </section>
+
       {/* --- REVIEWS SECTION --- */}
-      <section className="py-20 px-4 bg-white border-t border-slate-100">
+      <section id="reviews" className="py-20 px-4 bg-slate-50 border-t border-slate-200">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Trusted by the Community</h2>
@@ -162,22 +200,40 @@ export const LandingPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {reviews.map((review) => (
-              <ReviewCard 
-                key={review.id}
-                type={review.type}
-                name={review.name}
-                role={review.role}
-                content={review.content}
-                rating={review.rating}
-              />
-            ))}
+            <ReviewCard 
+              type="user"
+              name="Sarah Jenkins"
+              role="Mother of two"
+              content="Saved my kids from accidental poisoning! The AI identification feature is a lifesaver for checking old meds."
+              rating={5}
+            />
+            <ReviewCard 
+              type="agent"
+              name="Vikram Singh"
+              role="Fleet Owner"
+              content="Best logistics platform for medical waste. The route optimization helps me save fuel and time every day."
+              rating={5}
+            />
+            <ReviewCard 
+              type="user"
+              name="David Chen"
+              role="Environmentalist"
+              content="Finally, a way to dispose of medicines without polluting our water systems. The credit system is a great bonus!"
+              rating={4}
+            />
+            <ReviewCard 
+              type="agent"
+              name="Rahul Sharma"
+              role="Planet Prescription Agent"
+              content="Verified pickups mean safer work conditions for us. The dedicated app makes the job professional and easy."
+              rating={5}
+            />
           </div>
         </div>
       </section>
 
       {/* --- FAQ SECTION --- */}
-      <section className="py-20 px-4 bg-slate-50">
+      <section id="faq" className="py-20 px-4 bg-white border-t border-slate-200">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Frequently Asked Questions</h2>
@@ -206,67 +262,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* --- FOOTER --- */}
-      <footer className="bg-slate-900 text-slate-300 py-16 px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-          
-          <div className="space-y-4">
-            <h3 className="text-white text-lg font-bold flex items-center gap-2">
-              <Logo className="h-6 w-auto" />
-              Planet Prescription
-            </h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Empowering communities to manage pharmaceutical waste safely, securely, and sustainably.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="text-white font-bold mb-4">Contact Us</h4>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-teal-500" />
-                <a href="mailto:planetprescription07@gmail.com" className="hover:text-white transition-colors">
-                  support@planetprescription.com
-                </a>
-              </li>
-              <li>1-800-PHARMA-SAFE</li>
-              <li>Mumbai, India</li>
-            </ul>
-          </div>
-
-          <div>
-             <h4 className="text-white font-bold mb-4">Social Media</h4>
-             <div className="flex gap-4">
-                <SocialIcon href="https://www.linkedin.com/company/planet-prescription/about/?viewAsMember=true" icon={Linkedin} />
-                <SocialIcon href="https://www.youtube.com/@PLANET_PRESCRIPTION" icon={Youtube} />
-                <SocialIcon href="https://www.instagram.com/planet_prescriptors_07/" icon={Instagram} />
-             </div>
-          </div>
-
-          <div>
-            <h4 className="text-white font-bold mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li className="hover:text-white cursor-pointer">Privacy Policy</li>
-              <li className="hover:text-white cursor-pointer">Terms of Service</li>
-              <li className="hover:text-white cursor-pointer">Compliance</li>
-              
-              {/* Highlighted Admin Button */}
-              <li className="mt-6 pt-4 border-t border-slate-800">
-                <button 
-                  onClick={() => navigate('/admin-login')}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-blue-600 border border-slate-700 hover:border-blue-500 rounded-lg text-slate-300 hover:text-white transition-all text-xs font-bold uppercase tracking-widest w-full justify-center group"
-                >
-                  <LayoutDashboard className="w-4 h-4 text-blue-500 group-hover:text-white transition-colors" />
-                  Admin Portal
-                </button>
-              </li>
-            </ul>
-          </div>
-
-        </div>
-        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
-           © 2024 Planet Prescription. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
 
     </div>
   );
@@ -277,13 +273,13 @@ export const LandingPage: React.FC = () => {
 const ReviewCard = ({ type, name, role, content, rating }: { type: 'user' | 'agent', name: string, role: string, content: string, rating: number }) => {
   const isUser = type === 'user';
   return (
-    <div className={`p-6 rounded-2xl border ${isUser ? 'bg-green-50/50 border-green-100' : 'bg-slate-800 border-slate-700 text-white'} transition-all hover:-translate-y-1 duration-300 shadow-sm flex flex-col h-full`}>
+    <div className={`p-6 rounded-2xl border ${isUser ? 'bg-green-50/50 border-green-100' : 'bg-slate-800 border-slate-700 text-white'} transition-all hover:-translate-y-1 duration-300 shadow-sm`}>
       <div className="flex gap-1 mb-3">
         {[...Array(rating)].map((_, i) => (
           <Star key={i} className={`w-4 h-4 ${isUser ? 'text-amber-400' : 'text-orange-500'} fill-current`} />
         ))}
       </div>
-      <p className={`text-sm mb-4 leading-relaxed flex-1 ${isUser ? 'text-slate-700' : 'text-slate-300'}`}>"{content}"</p>
+      <p className={`text-sm mb-4 leading-relaxed ${isUser ? 'text-slate-700' : 'text-slate-300'}`}>"{content}"</p>
       <div className="flex items-center gap-3">
          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${isUser ? 'bg-teal-100 text-teal-700' : 'bg-orange-500/20 text-orange-500 border border-orange-500/30'}`}>
             {name.charAt(0)}
@@ -316,9 +312,3 @@ const FAQItem = ({ question, answer }: { question: string, answer: string }) => 
     </div>
   );
 };
-
-const SocialIcon = ({ icon: Icon, href }: { icon: any, href: string }) => (
-  <a href={href} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-500 hover:bg-slate-700 transition-all">
-    <Icon className="w-5 h-5" />
-  </a>
-);

@@ -3,14 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { BackButton } from '../../components/common/BackButton';
 import { ShareImpactButton } from '../../components/common/ShareImpactButton';
 import { UserFeedbackForm } from '../../components/user/UserFeedbackForm';
+import { useNavigate } from 'react-router-dom';
 import { 
   Scale, Leaf, Clock, Activity, ArrowUpRight, 
   Wallet, Trophy, Shield, Zap, Recycle, Award, Package, 
-  User, MapPin, Phone, Calendar, PenLine, Save, X, LayoutGrid
+  User, MapPin, Phone, Calendar, PenLine, Save, X, LayoutGrid, Users
 } from 'lucide-react';
 import { StoredPickup, UserProfile, getUserPickups, getLifetimeUsage, getUserProfile, saveUserProfile } from '../../utils/storage';
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'profile'>('overview');
   const [pickups, setPickups] = useState<StoredPickup[]>([]);
   const [lifetimeUsage, setLifetimeUsage] = useState(0);
@@ -152,6 +154,18 @@ export default function DashboardPage() {
             <p className="text-slate-500 text-sm mt-4 z-10">
                 Member since {profile ? new Date(profile.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Feb 2024'}
             </p>
+          </div>
+
+          {/* Community Promo */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
+             <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-6 h-6" />
+             </div>
+             <h3 className="font-bold text-slate-900">Join the Community</h3>
+             <p className="text-xs text-slate-500 mt-1 mb-4">Connect with agents and neighbors. Share your impact story.</p>
+             <button onClick={() => navigate('/community')} className="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors">
+                Open Feed
+             </button>
           </div>
 
           {/* Wallet Card */}

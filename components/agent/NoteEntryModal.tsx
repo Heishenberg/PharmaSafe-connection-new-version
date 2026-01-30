@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { X, Save } from 'lucide-react';
+import { VoiceTextarea } from '../common/VoiceTextarea';
 
 interface NoteEntryModalProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ export const NoteEntryModal: React.FC<NoteEntryModalProps> = ({ isOpen, onClose,
           <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4">
-          <textarea
+          <VoiceTextarea
             autoFocus
             rows={5}
             value={note}

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Pill, ArrowRight, UserPlus, UserCheck, MapPin, User, Phone, Calendar, ArrowLeft } from 'lucide-react';
 import { Logo } from '../../components/Logo';
 import { saveUserProfile } from '../../utils/storage';
+import { VoiceInput } from '../../components/common/VoiceInput';
 
 export const UserAuth: React.FC = () => {
   const navigate = useNavigate();
@@ -77,9 +78,10 @@ export const UserAuth: React.FC = () => {
               <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Phone Number</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input 
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10" />
+                    <VoiceInput 
                         type="tel" 
+                        name="loginPhone"
                         value={loginPhone}
                         onChange={(e) => setLoginPhone(e.target.value)}
                         placeholder="+91 98765 43210"
@@ -117,8 +119,8 @@ export const UserAuth: React.FC = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10" />
+                  <VoiceInput 
                     name="name" required value={formData.name} onChange={handleChange} placeholder="e.g. Rohit Sharma"
                     className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50" 
                   />
@@ -127,8 +129,8 @@ export const UserAuth: React.FC = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Phone Number</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10" />
+                  <VoiceInput 
                     name="phone" required type="tel" value={formData.phone} onChange={handleChange} placeholder="+91 98765..."
                     className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50" 
                   />
@@ -140,7 +142,7 @@ export const UserAuth: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
                <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Age</label>
-                  <input 
+                  <VoiceInput 
                     name="age" required type="number" value={formData.age} onChange={handleChange} placeholder="25"
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50" 
                   />
@@ -163,8 +165,8 @@ export const UserAuth: React.FC = () => {
                <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">City</label>
                   <div className="relative">
-                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                     <input 
+                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 z-10" />
+                     <VoiceInput 
                         name="city" required value={formData.city} onChange={handleChange} placeholder="Mumbai"
                         className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50 text-sm" 
                      />
@@ -172,7 +174,7 @@ export const UserAuth: React.FC = () => {
                </div>
                <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pincode</label>
-                  <input 
+                  <VoiceInput 
                     name="pincode" required value={formData.pincode} onChange={handleChange} placeholder="400001"
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50 text-sm" 
                   />

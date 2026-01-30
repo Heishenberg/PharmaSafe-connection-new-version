@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { MessageSquare, Send, CheckCircle } from 'lucide-react';
 import { saveFeedback } from '../../utils/feedbackStorage';
 import { getUserProfile } from '../../utils/storage';
+import { VoiceTextarea } from '../../components/common/VoiceTextarea';
 
 export const UserFeedbackForm: React.FC = () => {
   const [message, setMessage] = useState('');
@@ -37,7 +38,7 @@ export const UserFeedbackForm: React.FC = () => {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-3">
-          <textarea 
+          <VoiceTextarea 
             className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none text-slate-700 placeholder:text-slate-400 resize-none transition-all"
             rows={3}
             placeholder="How has Planet Prescription helped you?"

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PieChart, Map, Leaf, TrendingUp } from 'lucide-react';
+import { PieChart, Map, Leaf, TrendingUp, Scale } from 'lucide-react';
 
 export const AdminAnalytics: React.FC = () => {
   return (
@@ -126,6 +126,3 @@ export const AdminAnalytics: React.FC = () => {
     </div>
   );
 };
-
-// Helper for icon
-import { Scale } from 'lucide-react';
