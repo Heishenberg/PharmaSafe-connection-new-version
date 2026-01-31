@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, CalendarClock, History, BarChart3, LogOut, PackageSearch } from 'lucide-react';
+import { LayoutDashboard, CalendarClock, History, BarChart3, LogOut, PackageSearch, Building } from 'lucide-react';
 import { Logo } from '../Logo';
 
 export const HospitalSidebar: React.FC = () => {
@@ -30,6 +30,12 @@ export const HospitalSidebar: React.FC = () => {
             label="Overview" 
             active={isActive('/hospital')} 
             onClick={() => navigate('/hospital')} 
+         />
+         <SidebarItem 
+            icon={Building} 
+            label="Facility Profile" 
+            active={isActive('/hospital/profile')} 
+            onClick={() => navigate('/hospital/profile')} 
          />
          <SidebarItem 
             icon={CalendarClock} 

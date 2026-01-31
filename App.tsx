@@ -14,6 +14,7 @@ import { HomePage } from './pages/user/HomePage';
 import { RewardsPage } from './pages/user/RewardsPage';
 import { CommunityPage } from './pages/community/CommunityPage';
 import { AgentDashboard } from './pages/agent/AgentDashboard';
+import { AgentProfile } from './pages/agent/AgentProfile';
 import { EarningsPage } from './pages/agent/EarningsPage';
 import { SupportPage } from './pages/agent/SupportPage';
 import { PickupHistoryPage } from './pages/agent/PickupHistoryPage';
@@ -24,7 +25,9 @@ import { AdminFleet } from './pages/admin/sections/AdminFleet';
 import { AdminAnalytics } from './pages/admin/sections/AdminAnalytics';
 import { AdminSettings } from './pages/admin/sections/AdminSettings';
 import { AdminHospitals } from './pages/admin/sections/AdminHospitals';
+import { AdminProfile } from './pages/admin/sections/AdminProfile';
 import { HospitalDashboard } from './pages/hospital/HospitalDashboard';
+import { HospitalProfile } from './pages/hospital/HospitalProfile';
 import { HospitalAnalytics } from './pages/hospital/HospitalAnalytics';
 import { BulkPickupForm } from './pages/hospital/BulkPickupForm';
 import { ComplianceCerts } from './pages/hospital/ComplianceCerts';
@@ -45,8 +48,9 @@ const App: React.FC = () => {
   const hideNavbarRoutes = [
     '/user-login', '/agent-login', '/admin', '/admin-login', 
     '/hospital-login', '/hospital', '/hospital/schedule', 
-    '/hospital/compliance', '/hospital/inventory', '/hospital/analytics',
-    '/community' // Community page handles its own layout
+    '/hospital/compliance', '/hospital/inventory', '/hospital/analytics', '/hospital/profile',
+    '/community', // Community page handles its own layout
+    '/agent/profile' // Agent profile handles its own layout
   ];
   
   // Logic to determine context
@@ -115,12 +119,14 @@ const App: React.FC = () => {
           
           {/* Agent App Routes */}
           <Route path="/agent" element={<AgentDashboard />} />
+          <Route path="/agent/profile" element={<AgentProfile />} />
           <Route path="/agent/earnings" element={<EarningsPage />} />
           <Route path="/agent/support" element={<SupportPage />} />
           <Route path="/agent/history" element={<PickupHistoryPage />} />
 
           {/* Hospital App Routes */}
           <Route path="/hospital" element={<HospitalDashboard />} />
+          <Route path="/hospital/profile" element={<HospitalProfile />} />
           <Route path="/hospital/schedule" element={<BulkPickupForm />} />
           <Route path="/hospital/compliance" element={<ComplianceCerts />} />
           <Route path="/hospital/inventory" element={<HospitalInventory />} />
@@ -134,6 +140,7 @@ const App: React.FC = () => {
              <Route path="fleet" element={<AdminFleet />} />
              <Route path="analytics" element={<AdminAnalytics />} />
              <Route path="settings" element={<AdminSettings />} />
+             <Route path="profile" element={<AdminProfile />} />
           </Route>
         </Routes>
       </main>

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, History, Wallet, LifeBuoy, LogOut, 
-  Bell, Truck, ChevronRight, CheckCircle, Clock, XCircle, Sparkles, Users 
+  Bell, Truck, ChevronRight, CheckCircle, Clock, XCircle, Sparkles, Users, User
 } from 'lucide-react';
 import { Logo } from '../../components/Logo';
 import { AgentStatusToggle } from '../../components/common/AgentStatusToggle';
@@ -159,6 +159,7 @@ export const AgentDashboard = () => {
 
         <nav className="flex-1 px-4 space-y-2 mt-4">
           <NavItem icon={LayoutDashboard} label="Command Center" active onClick={() => navigate('/agent')} />
+          <NavItem icon={User} label="Profile" onClick={() => navigate('/agent/profile')} />
           <NavItem icon={History} label="Job History" onClick={() => navigate('/agent/history')} />
           <NavItem icon={Wallet} label="Earnings" onClick={() => navigate('/agent/earnings')} />
           <NavItem icon={LifeBuoy} label="Support" onClick={() => navigate('/agent/support')} />

@@ -77,6 +77,8 @@ export const AgentAuth: React.FC = () => {
     };
     
     saveAgentProfile(agentProfile);
+    // Save Role
+    localStorage.setItem('userType', 'agent');
     
     // Navigate to Dashboard
     navigate('/agent');
@@ -89,6 +91,9 @@ export const AgentAuth: React.FC = () => {
       alert('Please enter Valid Agent ID and Password');
       return;
     }
+
+    // Save Role
+    localStorage.setItem('userType', 'agent');
 
     // Simulate login
     navigate('/agent');

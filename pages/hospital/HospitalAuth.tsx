@@ -15,6 +15,8 @@ export const HospitalAuth: React.FC = () => {
     // Simulate Login Delay
     setTimeout(() => {
       setIsLoading(false);
+      // Save Role
+      localStorage.setItem('userType', 'hospital');
       navigate('/hospital');
     }, 1500);
   };

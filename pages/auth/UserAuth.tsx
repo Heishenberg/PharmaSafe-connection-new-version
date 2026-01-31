@@ -27,6 +27,8 @@ export const UserAuth: React.FC = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    // Save Role
+    localStorage.setItem('userType', 'user');
     // For prototype: just navigate. In real app, validate credentials.
     navigate('/user-home');
   };
@@ -46,6 +48,8 @@ export const UserAuth: React.FC = () => {
     };
 
     saveUserProfile(userProfile);
+    // Save Role
+    localStorage.setItem('userType', 'user');
     
     // Navigate to home
     navigate('/user-home');
