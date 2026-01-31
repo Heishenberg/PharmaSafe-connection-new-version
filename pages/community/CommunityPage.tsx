@@ -7,26 +7,10 @@ import { CreatePostWidget } from '../../components/community/CreatePostWidget';
 import { PostCard } from '../../components/community/PostCard';
 import { CommunitySidebar } from '../../components/community/CommunitySidebar';
 import { COMMUNITY_POSTS } from '../../data/communityData';
-import { ArrowLeft } from 'lucide-react';
 
 export const CommunityPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('Feed');
-
-  const handleReturn = () => {
-    const userType = localStorage.getItem('userType');
-
-    if (userType === 'agent') {
-      navigate('/agent');
-    } else if (userType === 'hospital') {
-      navigate('/hospital');
-    } else if (userType === 'user') {
-      navigate('/dashboard');
-    } else {
-      // Fallback for guests
-      navigate('/');
-    }
-  };
 
   const navItems = ['Feed', 'My Posts', 'Saved', 'Announcements'];
 
@@ -34,18 +18,9 @@ export const CommunityPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
       <Navbar />
       
-      <main className="flex-grow pt-24 pb-20">
+      <main className="flex-grow pt-8 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Back Button */}
-          <button 
-            onClick={handleReturn}
-            className="mb-6 flex items-center gap-2 text-slate-500 hover:text-teal-700 font-bold transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Return to Dashboard
-          </button>
-
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             {/* Left Sidebar */}

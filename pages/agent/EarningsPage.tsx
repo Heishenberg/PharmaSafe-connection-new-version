@@ -15,7 +15,7 @@ export const EarningsPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8">
+    <div className="p-4 md:p-8">
       {/* Header */}
       <div className="max-w-4xl mx-auto mb-8">
         <button onClick={() => navigate('/agent')} className="flex items-center gap-2 text-slate-400 hover:text-white mb-4 transition-colors">

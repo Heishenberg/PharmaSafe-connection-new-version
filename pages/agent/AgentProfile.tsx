@@ -7,7 +7,7 @@ export const AgentProfile = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8 font-sans">
+    <div className="p-4 md:p-8 font-sans">
       <div className="max-w-3xl mx-auto">
         <button 
           onClick={() => navigate('/agent')} 

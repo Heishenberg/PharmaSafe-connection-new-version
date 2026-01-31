@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Pill, LayoutDashboard, ScanLine, LogOut, Bell, Menu, X, Gift, Users, ArrowLeft } from 'lucide-react';
+import { Pill, LayoutDashboard, ScanLine, LogOut, Bell, Menu, X, Gift, Users, ArrowLeft, Trophy, User } from 'lucide-react';
 import { Logo } from '../Logo';
 import { RoleSelectionModal } from '../auth/RoleSelectionModal';
 
@@ -13,10 +13,44 @@ export const Navbar: React.FC = () => {
 
   const isLanding = location.pathname === '/';
   const isCommunity = location.pathname === '/community';
+  
+  // Smart Auth Check
+  const userType = localStorage.getItem('userType');
+  const isLoggedIn = !!userType;
 
   const handleLogout = () => {
+    localStorage.removeItem('userType');
+    localStorage.removeItem('userProfile');
+    localStorage.removeItem('agentProfile');
+    localStorage.removeItem('isAdminLoggedIn');
+    // Clear other specific keys if needed
     navigate('/');
     setMobileMenuOpen(false);
+  };
+
+  const getDashboardRoute = () => {
+    switch (userType) {
+        case 'admin': return '/admin';
+        case 'agent': return '/agent';
+        case 'hospital': return '/hospital';
+        case 'user': return '/dashboard';
+        default: return '/';
+    }
+  };
+
+  const handleLogoClick = () => {
+    const type = localStorage.getItem('userType');
+    if (type === 'admin') {
+      navigate('/admin');
+    } else if (type === 'agent') {
+      navigate('/agent');
+    } else if (type === 'hospital') {
+      navigate('/hospital');
+    } else if (type === 'user') {
+      navigate('/dashboard');
+    } else {
+      navigate('/');
+    }
   };
 
   const getActiveId = (path: string) => {
@@ -25,17 +59,11 @@ export const Navbar: React.FC = () => {
     if (path.startsWith('/dashboard')) return 'DASHBOARD';
     if (path.startsWith('/user/rewards')) return 'REWARDS';
     if (path.startsWith('/community')) return 'COMMUNITY';
+    if (path.startsWith('/leaderboard')) return 'LEADERBOARD';
     return '';
   };
 
   const currentView = getActiveId(location.pathname);
-
-  // Smart Return Path for Community Page
-  const getReturnPath = () => {
-    if (localStorage.getItem('agentProfile')) return '/agent';
-    if (localStorage.getItem('userProfile')) return '/dashboard';
-    return '/';
-  };
 
   // Links for the Landing Page
   const landingLinks = [
@@ -53,6 +81,7 @@ export const Navbar: React.FC = () => {
     { id: 'DASHBOARD', icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { id: 'REWARDS', icon: Gift, label: 'Rewards', path: '/user/rewards' },
     { id: 'COMMUNITY', icon: Users, label: 'Community', path: '/community' },
+    { id: 'LEADERBOARD', icon: Trophy, label: 'Leaderboard', path: '/leaderboard' },
   ];
 
   const handleScroll = (id: string) => {
@@ -76,7 +105,7 @@ export const Navbar: React.FC = () => {
           <div className="flex justify-between items-center h-20">
               
             {/* Logo Section */}
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(isLanding ? '/' : '/user-home')}>
+            <div className="flex items-center gap-3 cursor-pointer" onClick={handleLogoClick}>
               <Logo className="h-9 w-auto" />
               <div className="hidden md:block">
                 <span className="font-bold text-xl text-slate-900 block leading-none tracking-tight">Planet Prescription</span>
@@ -88,13 +117,15 @@ export const Navbar: React.FC = () => {
               {isCommunity ? (
                 // COMMUNITY VIEW (Shared/Neutral)
                 <div className="flex items-center gap-4">
-                   <button 
-                     onClick={() => navigate(getReturnPath())}
-                     className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-bold bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
-                   >
-                     <ArrowLeft className="w-4 h-4" />
-                     Return to Dashboard
-                   </button>
+                   {isLoggedIn && (
+                       <button 
+                         onClick={() => navigate(getDashboardRoute())}
+                         className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-bold bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                       >
+                         <ArrowLeft className="w-4 h-4" />
+                         Back to Dashboard
+                       </button>
+                   )}
                 </div>
               ) : isLanding ? (
                 // LANDING VIEW
@@ -117,12 +148,22 @@ export const Navbar: React.FC = () => {
                     >
                         Admin
                     </button>
-                    <button 
-                      onClick={() => setIsRoleModalOpen(true)}
-                      className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95"
-                    >
-                      Login / Get Started
-                    </button>
+                    
+                    {isLoggedIn ? (
+                        <button 
+                          onClick={() => navigate(getDashboardRoute())}
+                          className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2"
+                        >
+                          <LayoutDashboard className="w-4 h-4" /> Go to Dashboard
+                        </button>
+                    ) : (
+                        <button 
+                          onClick={() => setIsRoleModalOpen(true)}
+                          className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95"
+                        >
+                          Login / Get Started
+                        </button>
+                    )}
                   </div>
                 </>
               ) : (
@@ -133,7 +174,7 @@ export const Navbar: React.FC = () => {
                       <button
                         key={item.id}
                         onClick={() => navigate(item.path)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 ${
                           currentView === item.id 
                             ? 'bg-teal-50 text-teal-700 font-bold' 
                             : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
@@ -174,7 +215,7 @@ export const Navbar: React.FC = () => {
           <div className="md:hidden absolute top-20 left-0 right-0 bg-white border-b border-slate-200 shadow-xl p-4 flex flex-col gap-2 animate-in slide-in-from-top-4 duration-200">
             {isCommunity ? (
                <button 
-                 onClick={() => { navigate(getReturnPath()); setMobileMenuOpen(false); }}
+                 onClick={() => { navigate(getDashboardRoute()); setMobileMenuOpen(false); }}
                  className="w-full flex items-center gap-3 px-4 py-3 bg-slate-100 rounded-lg font-bold text-slate-800"
                >
                  <ArrowLeft className="w-5 h-5" /> Return to Dashboard
@@ -197,12 +238,21 @@ export const Navbar: React.FC = () => {
                 >
                   Admin Portal
                 </button>
-                <button 
-                  onClick={() => { setMobileMenuOpen(false); setIsRoleModalOpen(true); }}
-                  className="w-full py-3 bg-teal-600 text-white rounded-xl font-bold"
-                >
-                  Login / Get Started
-                </button>
+                {isLoggedIn ? (
+                    <button 
+                      onClick={() => { setMobileMenuOpen(false); navigate(getDashboardRoute()); }}
+                      className="w-full py-3 bg-teal-600 text-white rounded-xl font-bold"
+                    >
+                      Go to Dashboard
+                    </button>
+                ) : (
+                    <button 
+                      onClick={() => { setMobileMenuOpen(false); setIsRoleModalOpen(true); }}
+                      className="w-full py-3 bg-teal-600 text-white rounded-xl font-bold"
+                    >
+                      Login / Get Started
+                    </button>
+                )}
               </>
             ) : (
               <>

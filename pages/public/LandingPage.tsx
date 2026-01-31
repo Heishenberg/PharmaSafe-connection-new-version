@@ -3,11 +3,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Leaf, Droplets, Wallet, TrendingUp, ShieldCheck, Truck, 
-  Building2, Star, ChevronDown, ChevronUp
+  Building2, Star, ChevronDown, ChevronUp, Sprout, Recycle
 } from 'lucide-react';
 import { Logo } from '../../components/Logo';
 import { Footer } from '../../components/common/Footer';
 import { RoleSelectionModal } from '../../components/auth/RoleSelectionModal';
+import { WhyChooseUs } from '../../components/home/WhyChooseUs';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,141 +22,76 @@ export const LandingPage: React.FC = () => {
     <div className="min-h-screen font-sans bg-slate-50">
       <RoleSelectionModal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} />
       
-      {/* --- HERO SECTION --- */}
-      <div id="impact" className="relative min-h-[90vh] overflow-hidden flex flex-col pt-10 md:pt-0">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2000&auto=format&fit=crop')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          <div className="absolute inset-0 bg-white/75 backdrop-blur-[1px]"></div>
+      {/* --- CENTERED HERO SECTION --- */}
+      <div id="impact" className="relative pt-32 pb-20 sm:pt-40 sm:pb-24 overflow-hidden bg-slate-50">
+        
+        {/* Background Decoration */}
+        <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f9ff_1px,transparent_1px),linear-gradient(to_bottom,#f0f9ff_1px,transparent_1px)] bg-[size:6rem_4rem]">
+            <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_800px_at_100%_200px,#ccfbf1,transparent)]"></div>
         </div>
 
-        {/* Content Container */}
-        <div className="relative z-10 flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center py-12">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center z-10">
           
-          <div className="flex flex-col md:flex-row items-center gap-12 mt-8 md:mt-0">
-            {/* LEFT: Copy & Actions */}
-            <div className="flex-1 text-center md:text-left space-y-8 animate-in slide-in-from-left-8 duration-700">
-              <div className="space-y-4">
-                <span className="inline-block px-4 py-1.5 rounded-full bg-teal-100 text-teal-800 font-bold text-xs uppercase tracking-wider mb-2">
-                  ♻️ The Future of Pharma Disposal
-                </span>
-                <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 leading-tight tracking-tight">
-                  When Medicine Stops Healing, We Make Sure It Doesn't Harm.
-                  <br/>
-                  <span className="text-teal-700">Heal the Planet.</span>
-                </h1>
-                <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto md:mx-0 leading-relaxed">
-                  AI-powered safe disposal of unused medicines—protecting families, communities, and the planet.
-                </p>
-              </div>
-
-              {/* THREE MAIN BUTTONS */}
-              <div className="flex flex-col lg:flex-row items-center gap-4 justify-center md:justify-start flex-wrap">
-                <button 
-                  onClick={() => navigate('/user-login')}
-                  className="w-full sm:w-auto px-6 py-4 bg-teal-700 text-white rounded-xl font-bold shadow-xl hover:bg-teal-800 transition-all hover:scale-105 flex items-center justify-center gap-3"
-                >
-                  <ShieldCheck className="w-6 h-6" />
-                  <div className="text-left">
-                    <span className="block text-xs opacity-80 uppercase tracking-wide">User</span>
-                    <span className="block leading-none">Dispose Medicine</span>
-                  </div>
-                </button>
-                
-                <button 
-                  onClick={() => navigate('/agent-login')}
-                  className="w-full sm:w-auto px-6 py-4 bg-slate-900 text-orange-500 border border-orange-500/30 rounded-xl font-bold shadow-xl hover:bg-slate-800 transition-all hover:scale-105 flex items-center justify-center gap-3"
-                >
-                  <Truck className="w-6 h-6" />
-                  <div className="text-left">
-                    <span className="block text-xs opacity-80 uppercase tracking-wide text-orange-400">Agent</span>
-                    <span className="block leading-none">Partner Login</span>
-                  </div>
-                </button>
-
-                <button 
-                  onClick={() => navigate('/hospital-login')}
-                  className="w-full sm:w-auto px-6 py-4 bg-cyan-700 text-white border border-cyan-500/30 rounded-xl font-bold shadow-xl hover:bg-cyan-800 transition-all hover:scale-105 flex items-center justify-center gap-3"
-                >
-                  <Building2 className="w-6 h-6" />
-                  <div className="text-left">
-                    <span className="block text-xs opacity-80 uppercase tracking-wide text-cyan-200">Hospital</span>
-                    <span className="block leading-none">Partner Portal</span>
-                  </div>
-                </button>
-              </div>
-              
-              <p className="text-sm text-slate-500 font-medium">
-                Trusted by 10,000+ households and 500+ certified agents.
-              </p>
-            </div>
-
-            {/* RIGHT: Floating Glass Card */}
-            <div className="flex-1 w-full max-w-md animate-in slide-in-from-right-8 duration-700 hidden md:block">
-              <div className="bg-white/40 backdrop-blur-md border border-white/50 rounded-3xl p-6 shadow-2xl">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-slate-800">Real-Time Impact</h2>
-                  <span className="flex items-center gap-1 text-[10px] font-bold bg-green-100/80 text-green-800 px-2 py-1 rounded-full uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse"></span>
-                    Live Data
-                  </span>
-                </div>
-
-                <div className="relative h-48 mb-6 flex items-center justify-center">
-                   <svg viewBox="0 0 100 50" className="w-full h-full drop-shadow-lg">
-                     <path d="M10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="8" strokeLinecap="round" />
-                     <path d="M10 50 A 40 40 0 0 1 75 22" fill="none" stroke="#059669" strokeWidth="8" strokeLinecap="round" />
-                   </svg>
-                   <div className="absolute bottom-0 text-center pb-2">
-                     <span className="block text-3xl font-black text-slate-800">88%</span>
-                     <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">City Health Score</span>
-                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/60 p-3 rounded-2xl border border-white/50">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Leaf className="w-4 h-4 text-green-600" />
-                      <span className="text-xs font-bold text-slate-500 uppercase">CO2 Avoided</span>
-                    </div>
-                    <p className="text-xl font-bold text-slate-800">186kg</p>
-                  </div>
-
-                  <div className="bg-white/60 p-3 rounded-2xl border border-white/50">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Droplets className="w-4 h-4 text-blue-600" />
-                      <span className="text-xs font-bold text-slate-500 uppercase">Water Safe</span>
-                    </div>
-                    <p className="text-xl font-bold text-slate-800">98k L</p>
-                  </div>
-
-                  <div className="bg-white/60 p-3 rounded-2xl border border-white/50">
-                    <div className="flex items-center gap-2 mb-1">
-                      <TrendingUp className="w-4 h-4 text-purple-600" />
-                      <span className="text-xs font-bold text-slate-500 uppercase">Credits</span>
-                    </div>
-                    <p className="text-xl font-bold text-slate-800">4.5M</p>
-                  </div>
-
-                  <div className="bg-white/60 p-3 rounded-2xl border border-white/50">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Wallet className="w-4 h-4 text-amber-600" />
-                      <span className="text-xs font-bold text-slate-500 uppercase">Savings</span>
-                    </div>
-                    <p className="text-xl font-bold text-slate-800">€1,499</p>
-                  </div>
-                </div>
+          {/* 1. Centered Logo Badge */}
+          <div className="mb-8 relative">
+            <div className="absolute inset-0 bg-teal-200 blur-xl opacity-30 rounded-full animate-pulse"></div>
+            <div className="relative bg-white p-4 rounded-full shadow-xl border border-teal-50">
+              <div className="bg-teal-100 p-3 rounded-full">
+                <Sprout className="w-10 h-10 text-teal-600" />
               </div>
             </div>
           </div>
+
+          {/* 2. Badge */}
+          <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-teal-50 border border-teal-100 mb-8 shadow-sm">
+            <span className="text-sm font-bold text-teal-700 tracking-wide uppercase">
+              THE FUTURE OF PHARMA DISPOSAL
+            </span>
+          </div>
+
+          {/* 3. RESTORED QUOTE & COLORS */}
+          <h1 className="text-5xl sm:text-7xl font-extrabold text-slate-900 tracking-tight mb-6 leading-[1.1]">
+            When Medicine Stops <br className="hidden sm:block" />
+            Healing, We Make Sure It <br className="hidden sm:block" />
+            Doesn't Harm. <br />
+            <span className="text-emerald-700">Heal the Planet.</span>
+          </h1>
+
+          {/* 4. Sub-headline */}
+          <p className="max-w-2xl text-xl text-slate-600 mb-10 leading-relaxed font-medium">
+            AI-powered safe disposal of unused medicines—protecting families, communities, and the planet.
+          </p>
+
+          {/* 5. Centered Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
+            <button 
+              onClick={() => navigate('/user-login')}
+              className="px-8 py-4 bg-emerald-700 text-white rounded-xl shadow-lg hover:bg-emerald-800 transition-all flex items-center font-bold text-lg"
+            >
+              <ShieldCheck className="w-5 h-5 mr-2" />
+              Dispose Medicine Householder User
+            </button>
+            <button 
+              onClick={() => navigate('/agent-login')}
+              className="px-8 py-4 bg-slate-900 text-white rounded-xl shadow-lg hover:bg-slate-800 transition-all flex items-center font-bold text-lg"
+            >
+              <Truck className="w-5 h-5 mr-2" />
+              Partner/Agent Login 
+            </button>
+            
+            <button 
+              onClick={() => navigate('/hospital-login')}
+              className="px-8 py-4 bg-teal-600 text-white rounded-xl shadow-lg hover:bg-teal-700 transition-all flex items-center font-bold text-lg"
+            >
+              <Building2 className="w-5 h-5 mr-2" />
+              Hospital Portal 
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* --- WHY CHOOSE US SECTION --- */}
+      <WhyChooseUs />
 
       {/* --- HOW IT WORKS SECTION --- */}
       <section id="how-it-works" className="py-20 px-4 bg-white">

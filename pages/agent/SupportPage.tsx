@@ -16,7 +16,7 @@ export const SupportPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8">
+    <div className="p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         <button onClick={() => navigate('/agent')} className="flex items-center gap-2 text-slate-400 hover:text-white mb-6 transition-colors">
            <ArrowLeft className="w-5 h-5" /> Back to Dashboard

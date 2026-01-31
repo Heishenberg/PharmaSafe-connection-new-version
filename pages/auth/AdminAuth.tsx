@@ -14,6 +14,7 @@ export const AdminAuth: React.FC = () => {
     e.preventDefault();
     if (credentials.id === 'ADMIN01' && credentials.password === 'secure123') {
       localStorage.setItem('isAdminLoggedIn', 'true');
+      localStorage.setItem('userType', 'admin'); // CRITICAL FIX: Persist role
       navigate('/admin');
     } else {
       setError('Unauthorized Access: Invalid Credentials');

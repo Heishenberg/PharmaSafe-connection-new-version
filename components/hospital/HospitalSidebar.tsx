@@ -1,14 +1,20 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, CalendarClock, History, BarChart3, LogOut, PackageSearch, Building } from 'lucide-react';
+import { LayoutDashboard, CalendarClock, History, BarChart3, LogOut, PackageSearch, Building, Gift } from 'lucide-react';
 import { Logo } from '../Logo';
 
 export const HospitalSidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isActive = (path: string) => location.pathname === path;
+  // Helper to keep parent active if child route is visited
+  const isActive = (path: string) => {
+    if (path === '/hospital/rewards') {
+        return ['/hospital/rewards', '/hospital/oxygen', '/hospital/cash'].includes(location.pathname);
+    }
+    return location.pathname === path;
+  };
 
   return (
     <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0">
@@ -36,6 +42,12 @@ export const HospitalSidebar: React.FC = () => {
             label="Facility Profile" 
             active={isActive('/hospital/profile')} 
             onClick={() => navigate('/hospital/profile')} 
+         />
+         <SidebarItem 
+            icon={Gift} 
+            label="Rewards" 
+            active={isActive('/hospital/rewards')} 
+            onClick={() => navigate('/hospital/rewards')} 
          />
          <SidebarItem 
             icon={CalendarClock} 

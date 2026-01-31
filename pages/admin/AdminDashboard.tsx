@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { 
   Users, Truck, Scale, Settings, 
-  BarChart3, LogOut, ChevronDown, Bell, Building2, User
+  BarChart3, LogOut, ChevronDown, Bell, Building2, User, BarChart2
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Logo } from '../../components/Logo';
@@ -76,6 +76,12 @@ export const AdminDashboard: React.FC = () => {
               label="Waste Analytics" 
               active={isActive('/admin/analytics')} 
               onClick={() => navigate('/admin/analytics')} 
+           />
+           <AdminNavItem 
+              icon={BarChart2} 
+              label="Global Rankings" 
+              active={isActive('/leaderboard')} 
+              onClick={() => navigate('/leaderboard')} 
            />
            <AdminNavItem 
               icon={User} 

@@ -13,6 +13,7 @@ import DashboardPage from './pages/user/DashboardPage';
 import { HomePage } from './pages/user/HomePage';
 import { RewardsPage } from './pages/user/RewardsPage';
 import { CommunityPage } from './pages/community/CommunityPage';
+import { LeaderboardPage } from './pages/common/LeaderboardPage';
 import { AgentDashboard } from './pages/agent/AgentDashboard';
 import { AgentProfile } from './pages/agent/AgentProfile';
 import { EarningsPage } from './pages/agent/EarningsPage';
@@ -32,9 +33,13 @@ import { HospitalAnalytics } from './pages/hospital/HospitalAnalytics';
 import { BulkPickupForm } from './pages/hospital/BulkPickupForm';
 import { ComplianceCerts } from './pages/hospital/ComplianceCerts';
 import { HospitalInventory } from './pages/hospital/HospitalInventory';
+import { HospitalOxygen } from './pages/hospital/HospitalOxygen';
+import { HospitalRewards } from './pages/hospital/HospitalRewards';
+import { HospitalCash } from './pages/hospital/HospitalCash';
 import { MedicineAnalysis } from './types';
 import { Calendar } from 'lucide-react';
 import { saveUserPickup } from './utils/storage';
+import { AgentLayout } from './layouts/AgentLayout';
 
 const App: React.FC = () => {
   const navigate = useNavigate();
@@ -48,9 +53,10 @@ const App: React.FC = () => {
   const hideNavbarRoutes = [
     '/user-login', '/agent-login', '/admin', '/admin-login', 
     '/hospital-login', '/hospital', '/hospital/schedule', 
-    '/hospital/compliance', '/hospital/inventory', '/hospital/analytics', '/hospital/profile',
-    '/community', // Community page handles its own layout
-    '/agent/profile' // Agent profile handles its own layout
+    '/hospital/compliance', '/hospital/inventory', '/hospital/analytics', '/hospital/profile', 
+    '/hospital/oxygen', '/hospital/rewards', '/hospital/cash',
+    '/community', '/agent', '/agent/dashboard', '/agent/profile', '/agent/support', '/agent/earnings', '/agent/history',
+    '/leaderboard' // Leaderboard handles its own layout
   ];
   
   // Logic to determine context
@@ -116,13 +122,17 @@ const App: React.FC = () => {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/user/rewards" element={<RewardsPage />} />
           <Route path="/community" element={<CommunityPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
           
           {/* Agent App Routes */}
-          <Route path="/agent" element={<AgentDashboard />} />
-          <Route path="/agent/profile" element={<AgentProfile />} />
-          <Route path="/agent/earnings" element={<EarningsPage />} />
-          <Route path="/agent/support" element={<SupportPage />} />
-          <Route path="/agent/history" element={<PickupHistoryPage />} />
+          <Route path="/agent" element={<AgentLayout />}>
+             <Route index element={<AgentDashboard />} />
+             <Route path="dashboard" element={<AgentDashboard />} />
+             <Route path="profile" element={<AgentProfile />} />
+             <Route path="earnings" element={<EarningsPage />} />
+             <Route path="support" element={<SupportPage />} />
+             <Route path="history" element={<PickupHistoryPage />} />
+          </Route>
 
           {/* Hospital App Routes */}
           <Route path="/hospital" element={<HospitalDashboard />} />
@@ -131,6 +141,9 @@ const App: React.FC = () => {
           <Route path="/hospital/compliance" element={<ComplianceCerts />} />
           <Route path="/hospital/inventory" element={<HospitalInventory />} />
           <Route path="/hospital/analytics" element={<HospitalAnalytics />} />
+          <Route path="/hospital/rewards" element={<HospitalRewards />} />
+          <Route path="/hospital/oxygen" element={<HospitalOxygen />} />
+          <Route path="/hospital/cash" element={<HospitalCash />} />
 
           {/* Admin App Routes */}
           <Route path="/admin" element={<AdminDashboard />}>
