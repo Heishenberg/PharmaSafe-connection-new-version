@@ -45,7 +45,8 @@ const App: React.FC = () => {
   const hideNavbarRoutes = [
     '/user-login', '/agent-login', '/admin', '/admin-login', 
     '/hospital-login', '/hospital', '/hospital/schedule', 
-    '/hospital/compliance', '/hospital/inventory', '/hospital/analytics'
+    '/hospital/compliance', '/hospital/inventory', '/hospital/analytics',
+    '/community' // Community page handles its own layout
   ];
   
   // Logic to determine context

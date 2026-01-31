@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Pill, LayoutDashboard, ScanLine, LogOut, Bell, Menu, X, Gift, Users, Lock } from 'lucide-react';
+import { Pill, LayoutDashboard, ScanLine, LogOut, Bell, Menu, X, Gift, Users, ArrowLeft } from 'lucide-react';
 import { Logo } from '../Logo';
 import { RoleSelectionModal } from '../auth/RoleSelectionModal';
 
@@ -12,6 +12,7 @@ export const Navbar: React.FC = () => {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
 
   const isLanding = location.pathname === '/';
+  const isCommunity = location.pathname === '/community';
 
   const handleLogout = () => {
     navigate('/');
@@ -29,6 +30,13 @@ export const Navbar: React.FC = () => {
 
   const currentView = getActiveId(location.pathname);
 
+  // Smart Return Path for Community Page
+  const getReturnPath = () => {
+    if (localStorage.getItem('agentProfile')) return '/agent';
+    if (localStorage.getItem('userProfile')) return '/dashboard';
+    return '/';
+  };
+
   // Links for the Landing Page
   const landingLinks = [
     { label: 'How It Works', id: 'how-it-works' },
@@ -38,7 +46,7 @@ export const Navbar: React.FC = () => {
     { label: 'Contact', id: 'contact' },
   ];
 
-  // Links for the App (LoggedIn)
+  // Links for the App (LoggedIn User)
   const appLinks = [
     { id: 'HOME', icon: Pill, label: 'Home', path: '/user-home' },
     { id: 'SCAN', icon: ScanLine, label: 'Scan', path: '/scan' },
@@ -77,8 +85,19 @@ export const Navbar: React.FC = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              {isLanding ? (
-                // Landing Page Links
+              {isCommunity ? (
+                // COMMUNITY VIEW (Shared/Neutral)
+                <div className="flex items-center gap-4">
+                   <button 
+                     onClick={() => navigate(getReturnPath())}
+                     className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-bold bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                   >
+                     <ArrowLeft className="w-4 h-4" />
+                     Return to Dashboard
+                   </button>
+                </div>
+              ) : isLanding ? (
+                // LANDING VIEW
                 <>
                   <div className="flex items-center gap-6">
                     {landingLinks.map((link) => (
@@ -107,7 +126,7 @@ export const Navbar: React.FC = () => {
                   </div>
                 </>
               ) : (
-                // App Links
+                // USER APP VIEW
                 <>
                   <div className="flex items-center gap-2">
                     {appLinks.map((item) => (
@@ -153,7 +172,14 @@ export const Navbar: React.FC = () => {
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-20 left-0 right-0 bg-white border-b border-slate-200 shadow-xl p-4 flex flex-col gap-2 animate-in slide-in-from-top-4 duration-200">
-            {isLanding ? (
+            {isCommunity ? (
+               <button 
+                 onClick={() => { navigate(getReturnPath()); setMobileMenuOpen(false); }}
+                 className="w-full flex items-center gap-3 px-4 py-3 bg-slate-100 rounded-lg font-bold text-slate-800"
+               >
+                 <ArrowLeft className="w-5 h-5" /> Return to Dashboard
+               </button>
+            ) : isLanding ? (
               <>
                 {landingLinks.map((link) => (
                   <button
