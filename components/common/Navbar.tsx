@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Pill, LayoutDashboard, ScanLine, LogOut, Bell, Menu, X, Gift, Users, ArrowLeft, Trophy, User } from 'lucide-react';
 import { Logo } from '../Logo';
 import { RoleSelectionModal } from '../auth/RoleSelectionModal';
@@ -141,29 +141,21 @@ export const Navbar: React.FC = () => {
                       </button>
                     ))}
                   </div>
-                  <div className="pl-6 border-l border-slate-200 flex items-center gap-3">
-                    <button
-                        onClick={() => navigate('/admin-login')}
-                        className="px-4 py-2 border border-emerald-600 text-emerald-700 rounded-xl text-sm font-bold hover:bg-emerald-50 transition-all"
+                  <div className="pl-6 border-l border-slate-200 flex items-center">
+                    {/* Keep the Admin Link */}
+                    <Link 
+                      to="/admin-login"
+                      className="text-emerald-700 hover:text-emerald-800 font-medium px-4 py-2 border border-emerald-600 rounded-lg mr-4 hover:bg-emerald-50 transition-colors"
                     >
-                        Admin
+                      Admin
+                    </Link>
+                    {/* ALWAYS show Login / Get Started (Removed 'Go to Dashboard' logic) */}
+                    <button
+                      onClick={() => setIsRoleModalOpen(true)}
+                      className="bg-slate-900 text-white px-5 py-2.5 rounded-lg hover:bg-slate-800 transition-colors font-medium shadow-lg shadow-slate-300/50"
+                    >
+                      Login / Get Started
                     </button>
-                    
-                    {isLoggedIn ? (
-                        <button 
-                          onClick={() => navigate(getDashboardRoute())}
-                          className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2"
-                        >
-                          <LayoutDashboard className="w-4 h-4" /> Go to Dashboard
-                        </button>
-                    ) : (
-                        <button 
-                          onClick={() => setIsRoleModalOpen(true)}
-                          className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95"
-                        >
-                          Login / Get Started
-                        </button>
-                    )}
                   </div>
                 </>
               ) : (
@@ -238,21 +230,12 @@ export const Navbar: React.FC = () => {
                 >
                   Admin Portal
                 </button>
-                {isLoggedIn ? (
-                    <button 
-                      onClick={() => { setMobileMenuOpen(false); navigate(getDashboardRoute()); }}
-                      className="w-full py-3 bg-teal-600 text-white rounded-xl font-bold"
-                    >
-                      Go to Dashboard
-                    </button>
-                ) : (
-                    <button 
-                      onClick={() => { setMobileMenuOpen(false); setIsRoleModalOpen(true); }}
-                      className="w-full py-3 bg-teal-600 text-white rounded-xl font-bold"
-                    >
-                      Login / Get Started
-                    </button>
-                )}
+                <button 
+                  onClick={() => { setMobileMenuOpen(false); setIsRoleModalOpen(true); }}
+                  className="w-full py-3 bg-teal-600 text-white rounded-xl font-bold"
+                >
+                  Login / Get Started
+                </button>
               </>
             ) : (
               <>

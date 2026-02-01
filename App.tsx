@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/common/Navbar';
 import { FloatingHelpline } from './components/common/FloatingHelpline';
+import VoiceAgent from './components/common/VoiceAgent';
 import { LandingPage } from './pages/public/LandingPage';
 import { UserAuth } from './pages/auth/UserAuth';
 import { AgentAuth } from './pages/auth/AgentAuth';
@@ -160,6 +161,9 @@ const App: React.FC = () => {
 
       {/* Persistent Accessibility Button */}
       {!isAdminPortal && !isHospitalPortal && <FloatingHelpline />}
+
+      {/* AI Voice Agent - Available Globally */}
+      <VoiceAgent />
 
       {/* Schedule Modal Overlay */}
       {showScheduleModal && pendingAnalysis && (
